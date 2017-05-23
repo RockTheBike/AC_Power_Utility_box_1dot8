@@ -2,7 +2,7 @@
 
 /**** Split-rail Pedalometer
 * Arduino code to run the sLEDgehammer
-* ver. 1.6
+* ver. 1.9
 * Written by:
 * Thomas Spellman <thomas@thosmos.com>
 * Jake <jake@spaz.org>
@@ -12,6 +12,7 @@
 * 1.6 - moved version to the top, started protocol of commenting every change in file and in Git commit
 * 1.7 - jake 6-21-2012 disable minusalert until minus rail is pedaled at least once (minusAlertEnable and startupMinusVoltage)
 * 1.8 -- FF added annoying light sequence for when relay fails or customer bypasses protection circuitry.+
+* 1.9 Started using Chinese inverters labeled "1000W Pure Sine Inverter with AC and DC voltage output screens.
 
 */
 
@@ -39,7 +40,7 @@ int pin[numPins] = {3, 5, 6, 9};
 
 // voltages at which to turn on each level
 //float levelVolt[numLevels] = {21, 24.0, 27.0};
-float levelVolt[numLevels] = {22.0, 23.5, 24.8, 26.7, 27.2};
+float levelVolt[numLevels] = {21.8, 22.8, 25.8, 29.1, 29.5};
 //float levelVolt[numLevels] = {15.0, 17, 19.5, 22.2, 23};
 int levelMode=0; // 0 = off, 1 = blink, 2 = steady
 int whichPin[]={3, 5, 6, 9, 9}; //Mark, please help! 
@@ -83,12 +84,12 @@ const float ampcoeff = 7.4;
 //MAXIMUM VOLTAGE TO GIVE LEDS
 
 const float maxVoltLEDs = 21.0; //LED
-const float maxVoltPlusRail = 27.5;  // 
-const float dangerVoltPlusRail = 28.0;
+const float maxVoltPlusRail = 30.0;  //
+const float dangerVoltPlusRail = 30.8;
 
 
 //Hysteresis variables
-const float plusRailComeBackInVoltage = 26;
+const float plusRailComeBackInVoltage = 28.2;
 const float plusRailComeBackInVoltagetwelveVoltMode = 13.7;
 int plusRailHysteresis=0;
 int dangerVoltageState=0;
