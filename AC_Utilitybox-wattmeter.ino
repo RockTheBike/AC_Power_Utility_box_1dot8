@@ -153,36 +153,10 @@ void setup() {
   //SoftPWMBegin();
   
   Serial.println(versionStr);
-  
-  pinMode(voltPin,INPUT);
-//  pinMode(minusVoltPin, INPUT);
   pinMode(relayPin, OUTPUT);
   digitalWrite(relayPin,LOW);
-//  pinMode(minusRelayPin, OUTPUT);
-//   pinMode(twelveVoltPin, INPUT);
-//      pinMode(twelveVoltProtectionPin, INPUT);
- 
-  // init LED pins
-//  pinMode(10, OUTPUT); // wtf?  this is relay pin -jake
-  for(i = 0; i < numLevels; i++) {
-    pinMode(pin[i],OUTPUT);
-    if(levelType[i] == pwm)
-      analogWrite(pin[i],0);
-    else if(levelType[i] == onoff)
-      digitalWrite(pin[i],0);
-//       digitalWrite(twelveVoltPin, HIGH);
-//       digitalWrite(twelveVoltProtectionPin, HIGH);
-  }
-  
-  //init - Rail LED / pedalometer pins
-  //???
-//  pinMode(10, OUTPUT); // wtf?  this is relay pin -jake
-  pinMode(11,OUTPUT);
-  pinMode(12, OUTPUT);
-//  twelveVoltPedalometerMode=false;
-  // digitalWrite(minusRelayPin, LOW);
-   getVoltages();
-//   startupMinusVoltage = minusRailVoltage;  // we don't enable minusAlert unless minus rail gets pedaled up from the voltage it started at
+  for(i = 0; i < numLevels; i++) pinMode(pin[i],OUTPUT);
+  getVoltages();
 }
 
 boolean levelLock = false;
