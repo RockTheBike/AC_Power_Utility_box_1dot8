@@ -1,5 +1,3 @@
-  //#include <SoftPWM.h>
-
 /**** Split-rail Pedalometer
 * Arduino code to run the sLEDgehammer
 * ver. 1.9
@@ -13,21 +11,9 @@
 * 1.7 - jake 6-21-2012 disable minusalert until minus rail is pedaled at least once (minusAlertEnable and startupMinusVoltage)
 * 1.8 -- FF added annoying light sequence for when relay fails or customer bypasses protection circuitry.+
 * 1.9 Started using Chinese inverters labeled "1000W Pure Sine Inverter with AC and DC voltage output screens.
-
 */
 
-char versionStr[] = "AC Power Pedal Power Utility Box ver. 1.8";
-
-/*
-
-Check the system voltage. 
-Use a double array to check desired behavior for current voltage.
-Do the desired behavior until the next check.
-
-Repeat. 
-
-*/
-
+char versionStr[] = "AC Utility Box with wattmeter";
 
 const int pwm = 0;
 const int onoff = 1;
@@ -61,7 +47,11 @@ int levelType[numLevels] = {pwm, pwm, pwm, pwm, pwm};
 const int voltPin = A0; // Voltage Sensor Input
 //const int minusVoltPin = A1; // Voltage Sensor Input
 //const int ACAmpsPin = A2; // Voltage Sensor Input
-//const int plusRailAmpsPin = A1; 
+#define AMPSPIN A3 // Current Sensor Pin
+#define NOISYZERO 0.5  // assume any smaller measurement should be 0
+#define OVERSAMPLING 25.0 // analog oversampling
+#define AMPCOEFF 9.817 // 583 - 512 = 71; 71 / 8.8 amps = 8.0682
+#define AMPOFFSET 510.6 // when current sensor is at 0 amps this is the ADC value
 
 const int relayPin=2;
 //const int twelveVoltPin=12;
@@ -201,7 +191,7 @@ void loop() {
 
   getVoltages();
 
-  getCurrents();
+  getCurrent();
   setpwmvalue();
   readCount++;
   
@@ -378,11 +368,11 @@ void setpwmvalue()
   }
 }
 
-void getCurrents(){
- 
-
- plusRailAmps = average(adc2amps(adcvalue), plusRailAmps);
- 
+void getCurrent(){
+  plusRailAmpsRaw = 0; // reset adder
+  for(int j = 0; j < OVERSAMPLING; j++) plusRailAmpsRaw += analogRead(AMPSPIN) - AMPOFFSET;
+  plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF * -1; // it's negative
+  //if( plusRailAmps < NOISYZERO ) plusRailAmps = 0; // we assume anything near or below zero is a reading error
 }
 
 void getVoltages(){
@@ -449,8 +439,11 @@ float adc2amps(float adc){
 void printDisplay(){
   Serial.print("volts: ");
   Serial.print(voltage);
-    Serial.print(", AC Amps: ");
-  Serial.print(ACAmps);
+  Serial.print(", DC Amps: ");
+  Serial.print(plusRailAmps);
+  Serial.print(" (");
+  Serial.print((float)plusRailAmpsRaw / OVERSAMPLING,1);
+  Serial.print(")");
 
   Serial.print(", Levels ");
   for(i = 0; i < numLevels; i++) {
