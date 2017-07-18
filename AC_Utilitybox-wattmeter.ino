@@ -324,7 +324,7 @@ void setpwmvalue()
 void getCurrent(){
   plusRailAmpsRaw = 0; // reset adder
   for(int j = 0; j < OVERSAMPLING; j++) plusRailAmpsRaw += analogRead(AMPSPIN) - AMPOFFSET;
-  plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF * -1; // it's negative
+  plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF;
   if( plusRailAmps < NOISYZERO ) plusRailAmps = 0; // we assume anything near or below zero is a reading error
   wattage = voltage * plusRailAmps;
 }
