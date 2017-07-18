@@ -13,6 +13,8 @@
 * 1.9 Started using Chinese inverters labeled "1000W Pure Sine Inverter with AC and DC voltage output screens.
 */
 
+// TODO: untest NOISYZERO and sprintf (in updateDisplay)
+
 char versionStr[] = "AC Utility Box with wattmeter";
 
 const int pwm = 0;
@@ -53,6 +55,15 @@ const int voltPin = A0; // Voltage Sensor Input
 #define AMPCOEFF 9.817 // 583 - 512 = 71; 71 / 8.8 amps = 8.0682
 #define AMPOFFSET 510.6 // when current sensor is at 0 amps this is the ADC value
 float wattage = 0; // what is our present measured wattage
+#define WATTHOUR_DISPLAY_PIN    4
+#define WATTHOUR_DISPLAY_PIXELS (8*28) // actually 27 wide but leftmost doesn't exist
+// bottom right is first pixel, goes up 8, left 1, down 8, left 1...
+// https://www.aliexpress.com/item/8-32-Pixel/32225275406.html
+#include <Adafruit_NeoPixel.h>
+#include "font1.h"
+uint32_t fontColor = Adafruit_NeoPixel::Color(64,64,25);
+uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,1);
+Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, WATTHOUR_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
 
 const int relayPin=2;
 //const int twelveVoltPin=12;
@@ -148,10 +159,8 @@ int y = 0;
 
 void setup() {
   Serial.begin(57600);
-
-// Initialize Software PWM
-  //SoftPWMBegin();
-  
+  wattHourDisplay.begin();
+  wattHourDisplay.show();
   Serial.println(versionStr);
   pinMode(relayPin, OUTPUT);
   digitalWrite(relayPin,LOW);
@@ -167,6 +176,7 @@ void loop() {
   getVoltages();
 
   getCurrent();
+  updateDisplay();
   setpwmvalue();
   readCount++;
   
@@ -433,5 +443,42 @@ void printDisplay(){
   
   Serial.println("");
   Serial.println();
-  
+}
+
+void updateDisplay() {
+  char buf[]="    "; // stores the number we're going to display
+  sprintf(buf,"%4d",millis()/100);// for testing display
+  //sprintf(buf,"%4d",(int)(wattage / 10));
+  writeWattHourDisplay(buf);
+}
+
+void writeWattHourDisplay(char* text) {
+#define DISPLAY_CHARS   4 // number of characters in display
+#define FONT_W 7 // width of font
+#define FONT_H 8 // height of font
+  for (int textIndex=0; textIndex<DISPLAY_CHARS; textIndex++) {
+    char buffer[FONT_H][FONT_W]; // array of horizontal lines, top to bottom, left to right
+    for(int fontIndex=0; fontIndex<sizeof(charList); fontIndex++){ // charList is in font1.h
+      if(charList[fontIndex] == text[textIndex]){ // if fontIndex is the index of the desired letter
+        int pos = fontIndex*FONT_H; // index into CHL where the character starts
+        for(int row=0;row<FONT_H;row++){ // for each horizontal row of pixels
+          memcpy_P(buffer[row], (PGM_P)pgm_read_word(&(CHL[pos+row])), FONT_W); // copy to buffer from flash
+        }
+      }
+    }
+    for (int fontXIndex=0; fontXIndex<FONT_W; fontXIndex++) {
+      for (int fontYIndex=0; fontYIndex<FONT_H; fontYIndex++) {
+        uint32_t pixelColor = buffer[fontYIndex][FONT_W-1-fontXIndex]=='0' ? fontColor : backgroundColor; // here is where the magic happens
+        if ((FONT_W*(DISPLAY_CHARS-1-textIndex) + fontXIndex) & 1) { // odd columns are top-to-bottom
+          wattHourDisplay.setPixelColor((FONT_H*FONT_W)*(DISPLAY_CHARS-1-textIndex) + fontXIndex*FONT_H +           fontYIndex ,pixelColor);
+        } else { // even columns are bottom-to-top
+          wattHourDisplay.setPixelColor((FONT_H*FONT_W)*(DISPLAY_CHARS-1-textIndex) + fontXIndex*FONT_H + (FONT_H-1-fontYIndex),pixelColor);
+        }
+      }
+    }
+  }
+  wattHourDisplay.setPixelColor((FONT_W-1)*FONT_H+0,fontColor); // light up the decimal point
+  wattHourDisplay.setPixelColor((FONT_W  )*FONT_H+7,backgroundColor); // keep decimal point visible
+  wattHourDisplay.setPixelColor((FONT_W-2)*FONT_H+7,backgroundColor); // keep decimal point visible
+  wattHourDisplay.show(); // send the update out to the LEDs
 }
