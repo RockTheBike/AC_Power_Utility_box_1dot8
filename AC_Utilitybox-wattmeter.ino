@@ -52,6 +52,7 @@ const int voltPin = A0; // Voltage Sensor Input
 #define OVERSAMPLING 25.0 // analog oversampling
 #define AMPCOEFF 9.817 // 583 - 512 = 71; 71 / 8.8 amps = 8.0682
 #define AMPOFFSET 510.6 // when current sensor is at 0 amps this is the ADC value
+float wattage = 0; // what is our present measured wattage
 
 const int relayPin=2;
 //const int twelveVoltPin=12;
@@ -373,6 +374,7 @@ void getCurrent(){
   for(int j = 0; j < OVERSAMPLING; j++) plusRailAmpsRaw += analogRead(AMPSPIN) - AMPOFFSET;
   plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF * -1; // it's negative
   //if( plusRailAmps < NOISYZERO ) plusRailAmps = 0; // we assume anything near or below zero is a reading error
+  wattage = voltage * plusRailAmps;
 }
 
 void getVoltages(){
@@ -444,6 +446,8 @@ void printDisplay(){
   Serial.print(" (");
   Serial.print((float)plusRailAmpsRaw / OVERSAMPLING,1);
   Serial.print(")");
+  Serial.print(", DC Watts: ");
+  Serial.print(wattage);
 
   Serial.print(", Levels ");
   for(i = 0; i < numLevels; i++) {
