@@ -410,7 +410,7 @@ void printDisplay(){
 void updateDisplay() {
   char buf[]="    "; // stores the number we're going to display
   //sprintf(buf,"%4d",millis()/100);// for testing display
-  sprintf(buf,"%4d",(int)(wattage));
+  sprintf(buf,"%4d",((int)(wattage)/10) * 10); // quantize to tens of watts
   writeWattHourDisplay(buf);
 }
 
