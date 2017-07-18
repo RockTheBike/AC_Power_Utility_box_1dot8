@@ -52,7 +52,7 @@ const int voltPin = A0; // Voltage Sensor Input
 #define AMPSPIN A3 // Current Sensor Pin
 #define NOISYZERO 0.5  // assume any smaller measurement should be 0
 #define OVERSAMPLING 25.0 // analog oversampling
-#define AMPCOEFF 9.817 // 583 - 512 = 71; 71 / 8.8 amps = 8.0682
+#define AMPCOEFF 8.111
 #define AMPOFFSET 510.6 // when current sensor is at 0 amps this is the ADC value
 float wattage = 0; // what is our present measured wattage
 #define WATTHOUR_DISPLAY_PIN    4
@@ -81,7 +81,6 @@ GND ------ SerLCD "GND"
 //adc = v * 10/110/5 * 1024 == v * 18.618181818181818; // for a 10k and 100k voltage divider into a 10bit (1024) ADC that reads from 0 to 5V
 
 const float voltcoeff = 13.25;  // larger numer interprets as lower voltage 
-const float ampcoeff = 7.4; 
 
 //MAXIMUM VOLTAGE TO GIVE LEDS
 
@@ -415,12 +414,6 @@ float adc2volts(float adc){
   // v = adc * 110/10 * 5 / 1024 == adc * 0.0537109375;
   return adc * (1 / voltcoeff); // 55 / 1024 = 0.0537109375;
 }
-
-float adc2amps(float adc){
-  
-  return adc * (1 / ampcoeff); 
-}
-
 
 void printDisplay(){
   Serial.print("volts: ");
