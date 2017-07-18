@@ -13,8 +13,6 @@
 * 1.9 Started using Chinese inverters labeled "1000W Pure Sine Inverter with AC and DC voltage output screens.
 */
 
-// TODO: untest NOISYZERO and sprintf (in updateDisplay)
-
 char versionStr[] = "AC Utility Box with wattmeter";
 
 const int pwm = 0;
@@ -356,7 +354,7 @@ void getCurrent(){
   plusRailAmpsRaw = 0; // reset adder
   for(int j = 0; j < OVERSAMPLING; j++) plusRailAmpsRaw += analogRead(AMPSPIN) - AMPOFFSET;
   plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF * -1; // it's negative
-  //if( plusRailAmps < NOISYZERO ) plusRailAmps = 0; // we assume anything near or below zero is a reading error
+  if( plusRailAmps < NOISYZERO ) plusRailAmps = 0; // we assume anything near or below zero is a reading error
   wattage = voltage * plusRailAmps;
 }
 
@@ -440,8 +438,8 @@ void printDisplay(){
 
 void updateDisplay() {
   char buf[]="    "; // stores the number we're going to display
-  sprintf(buf,"%4d",millis()/100);// for testing display
-  //sprintf(buf,"%4d",(int)(wattage / 10));
+  //sprintf(buf,"%4d",millis()/100);// for testing display
+  sprintf(buf,"%4d",(int)(wattage));
   writeWattHourDisplay(buf);
 }
 
@@ -470,8 +468,8 @@ void writeWattHourDisplay(char* text) {
       }
     }
   }
-  wattHourDisplay.setPixelColor((FONT_W-1)*FONT_H+7,fontColor); // light up the decimal point
-  wattHourDisplay.setPixelColor((FONT_W  )*FONT_H+0,backgroundColor); // keep decimal point visible
-  wattHourDisplay.setPixelColor((FONT_W-2)*FONT_H+0,backgroundColor); // keep decimal point visible
+  // wattHourDisplay.setPixelColor((FONT_W-1)*FONT_H+7,fontColor); // light up the decimal point
+  // wattHourDisplay.setPixelColor((FONT_W  )*FONT_H+0,backgroundColor); // keep decimal point visible
+  // wattHourDisplay.setPixelColor((FONT_W-2)*FONT_H+0,backgroundColor); // keep decimal point visible
   wattHourDisplay.show(); // send the update out to the LEDs
 }
