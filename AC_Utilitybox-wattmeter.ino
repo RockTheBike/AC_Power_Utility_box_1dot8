@@ -56,7 +56,7 @@ const int voltPin = A0; // Voltage Sensor Input
 #define AMPOFFSET 510.6 // when current sensor is at 0 amps this is the ADC value
 float wattage = 0; // what is our present measured wattage
 #define WATTHOUR_DISPLAY_PIN    4
-#define WATTHOUR_DISPLAY_PIXELS (8*28) // actually 27 wide but leftmost doesn't exist
+#define WATTHOUR_DISPLAY_PIXELS (8*32)
 // bottom right is first pixel, goes up 8, left 1, down 8, left 1...
 // https://www.aliexpress.com/item/8-32-Pixel/32225275406.html
 #include <Adafruit_NeoPixel.h>
@@ -447,7 +447,7 @@ void updateDisplay() {
 
 void writeWattHourDisplay(char* text) {
 #define DISPLAY_CHARS   4 // number of characters in display
-#define FONT_W 7 // width of font
+#define FONT_W 8 // width of font
 #define FONT_H 8 // height of font
   for (int textIndex=0; textIndex<DISPLAY_CHARS; textIndex++) {
     char buffer[FONT_H][FONT_W]; // array of horizontal lines, top to bottom, left to right
