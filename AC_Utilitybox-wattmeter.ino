@@ -144,7 +144,6 @@ void loop() {
   getVoltages();
 
   getCurrent();
-  updateDisplay();
   setpwmvalue();
   readCount++;
   
@@ -284,6 +283,7 @@ if (voltage > dangerVoltPlusRail){
   if(time - timeDisplay > DISPLAY_INTERVAL_MS){
     timeDisplay = time;
     printDisplay();
+    updateDisplay();
     readCount = 0;
   }
   
