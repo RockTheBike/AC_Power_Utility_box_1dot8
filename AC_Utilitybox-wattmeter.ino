@@ -48,7 +48,7 @@ const int voltPin = A0; // Voltage Sensor Input
 //const int minusVoltPin = A1; // Voltage Sensor Input
 //const int ACAmpsPin = A2; // Voltage Sensor Input
 #define AMPSPIN A3 // Current Sensor Pin
-#define NOISYZERO 0.5  // assume any smaller measurement should be 0
+#define NOISYZERO 1.0  // assume any smaller measurement should be 0
 #define OVERSAMPLING 25.0 // analog oversampling
 #define AMPCOEFF 8.111
 #define AMPOFFSET 510.6 // when current sensor is at 0 amps this is the ADC value
@@ -64,20 +64,6 @@ uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,1);
 Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, WATTHOUR_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
 
 const int relayPin=2;
-//const int twelveVoltPin=12;
-//const int twelveVoltProtectionPin=8;
-
-/*
-Pin A0 --- AttoPilot "V"
-Pin A1 --- AttoPilot "I"
-GND ------ AttoPilot "GND"
-GND ------ SerLCD "GND"
-5V ------- SerLCD "VCC"
-*/
-
-//const int minusRelayPin=12;
-//adc = v * 10/110/5 * 1024 == v * 18.618181818181818; // for a 10k and 100k voltage divider into a 10bit (1024) ADC that reads from 0 to 5V
-
 const float voltcoeff = 13.25;  // larger numer interprets as lower voltage 
 
 //MAXIMUM VOLTAGE TO GIVE LEDS
@@ -120,30 +106,15 @@ int readCount = 0; // for determining how many sample cycle occur per display in
 
 // vars for current PWM duty cycle
 int pwmValue;
-//int pwmvalue24V;
 boolean updatePwm = false;
-//boolean minusAlert = false;  // makes all the pedalometer lights flash because minus rail is low
-//boolean minusAlertEnable = false;  // only enable the minusAlert if minus rail is pedaled at all
-//const float minusAlertVoltage = 14.5;  // below this voltage, if enabled, minusAlert happens.
-//
 
-
-
-// timing variables for blink. Mark, there are too many of these. 
 int blinkState=0;
 int fastBlinkState=0;
 unsigned long time = 0;
 unsigned long currentTime = 0;
 unsigned long lastFastBlinkTime = 0;
 unsigned long lastBlinkTime = 0;
-unsigned long timeRead = 0;
 unsigned long timeDisplay = 0;
-unsigned long timeWeStartedCheckingForVictory = 0;
-
-// Time related variables. Mark, this may be a vestige of the sLEDgehammer code but we should bring this feature back because in this video, the flickering would be prevented:
-//Basically this is a minimum time to keep each level on for before you can change it. http://www.rockthebike.com/pedal-power-utility-box-from-rock-the-bike/  
-unsigned long onTime = 500;
-unsigned long levelTime = 0;
 
 // current display level
 int level = -1;
