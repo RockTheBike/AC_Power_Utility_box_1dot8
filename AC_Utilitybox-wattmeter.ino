@@ -59,8 +59,8 @@ float wattage = 0; // what is our present measured wattage
 // https://www.aliexpress.com/item/8-32-Pixel/32225275406.html
 #include <Adafruit_NeoPixel.h>
 #include "font1.h"
-uint32_t fontColor = Adafruit_NeoPixel::Color(64,64,25);
-uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,1);
+uint32_t fontColor = Adafruit_NeoPixel::Color(175,157,120);
+uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,0);
 Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, WATTHOUR_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
 
 const int relayPin=2;
