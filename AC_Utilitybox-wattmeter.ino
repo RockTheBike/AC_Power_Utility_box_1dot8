@@ -26,7 +26,7 @@ int pin[numPins] = {3, 5, 6, 9};
 
 // voltages at which to turn on each level
 //float levelVolt[numLevels] = {21, 24.0, 27.0};
-float levelVolt[numLevels] = {21.8, 22.8, 25.8, 29.1, 29.5};
+float levelVolt[numLevels] = {21.8, 22.8, 25.8, 28.6, 29.5};
 //float levelVolt[numLevels] = {15.0, 17, 19.5, 22.2, 23};
 int levelMode=0; // 0 = off, 1 = blink, 2 = steady
 int whichPin[]={3, 5, 6, 9, 9}; //Mark, please help! 
