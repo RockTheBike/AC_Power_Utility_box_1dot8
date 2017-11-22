@@ -1,52 +1,9 @@
-/**** Split-rail Pedalometer
-* Arduino code to run the sLEDgehammer
-* ver. 1.9
-* Written by:
-* Thomas Spellman <thomas@thosmos.com>
-* Jake <jake@spaz.org>
-* Paul@rockthebike.com
-*
-* Notes: 
-* 1.6 - moved version to the top, started protocol of commenting every change in file and in Git commit
-* 1.7 - jake 6-21-2012 disable minusalert until minus rail is pedaled at least once (minusAlertEnable and startupMinusVoltage)
-* 1.8 -- FF added annoying light sequence for when relay fails or customer bypasses protection circuitry.+
-* 1.9 Started using Chinese inverters labeled "1000W Pure Sine Inverter with AC and DC voltage output screens.
-*/
+/* AC utility box with wattmeter and pedalometer
+ * using addressible LEDs for both */
 
-char versionStr[] = "AC Utility Box with wattmeter";
+char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer";
 
-const int pwm = 0;
-const int onoff = 1;
-
-const int numLevels = 5;
-
-// Arduino pin for each output level
-const int numPins = 4; // Number of active Arduino Pins for + rail team.
-int pin[numPins] = {3, 5, 6, 9};
-
-// voltages at which to turn on each level
-//float levelVolt[numLevels] = {21, 24.0, 27.0};
-float levelVolt[numLevels] = {21.8, 22.8, 25.8, 28.6, 29.5};
-//float levelVolt[numLevels] = {15.0, 17, 19.5, 22.2, 23};
-int levelMode=0; // 0 = off, 1 = blink, 2 = steady
-int whichPin[]={3, 5, 6, 9, 9}; //Mark, please help! 
-
-// voltages at which to turn on each level
-//float levelVolt[numLevels] = {21, 24.0, 27.0};
-//float minusRailLevelVolt[numLevels] = {22.0, 23.5, 24.8, 26.7, 27.2};
-//int minusRailLevelMode=0; // 0 = off, 1 = blink, 2 = steady
-
-int levelType[numLevels] = {pwm, pwm, pwm, pwm, pwm};
-
-
-// type of each level (pwm or onoff)
-
-
-
-// Arduino pins to be used as inputs to voltage sensor. This shows where to connect the wires! 
-const int voltPin = A0; // Voltage Sensor Input
-//const int minusVoltPin = A1; // Voltage Sensor Input
-//const int ACAmpsPin = A2; // Voltage Sensor Input
+#define VOLTPIN A0 // Voltage Sensor Pin
 #define AMPSPIN A3 // Current Sensor Pin
 #define NOISYZERO 1.0  // assume any smaller measurement should be 0
 #define OVERSAMPLING 25.0 // analog oversampling
@@ -63,262 +20,64 @@ uint32_t fontColor = Adafruit_NeoPixel::Color(175,157,120);
 uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,0);
 Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, WATTHOUR_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
 
-const int relayPin=2;
-const float voltcoeff = 13.25;  // larger numer interprets as lower voltage 
+#define DISCORELAY 2 // relay cutoff output pin // NEVER USE 13 FOR A RELAY
+#define VOLTCOEFF 13.36  // larger number interprets as lower voltage
+#define STATE_OFF 0
+#define STATE_ON 1
+#define STATE_BLINK_LOW 2
+#define STATE_BLINK_HIGH 3
+#define STATE_RAMP 4
 
-//MAXIMUM VOLTAGE TO GIVE LEDS
+#define MAX_VOLTS 30.0 // when to open the safety relay
+#define RECOVERY_VOLTS 23.0 // when to close the safety relay
+#define DANGER_VOLTS 30.8  // when to fast-flash white (slow-flash above last ledLevels)
+bool dangerState = false;
 
-const float maxVoltLEDs = 21.0; //LED
-const float maxVoltPlusRail = 30.0;  //
-const float dangerVoltPlusRail = 30.8;
-
-
-//Hysteresis variables
-const float plusRailComeBackInVoltage = 28.2;
-const float plusRailComeBackInVoltagetwelveVoltMode = 13.7;
-int plusRailHysteresis=0;
-int dangerVoltageState=0;
-//int minusRailHysteresis=0;
-
-// vars to store temp values
 int adcvalue = 0;
 
-//Voltage related variables. 
-float voltage = 0;
-//float minusRailVoltage=0;
-//float startupMinusVoltage=0;  // inital read of minus rail, to see if minus is being pedaled at all
+float volts = 0;
 
-//Current related variables
 float plusRailAmps=0;
-float ACAmps=0; 
 int plusRailAmpsRaw;
-int ACAmpsRaw;
 
-// on/off state of each level (for use in status output)
-int state[numLevels];
-int desiredState[numPins];
+#define AVG_CYCLES 50 // average measured voltage over this many samples
+#define DISPLAY_INTERVAL_MS 500 // when auto-display is on, display every this many milli-seconds
 
-const int AVG_CYCLES = 50; // average measured voltage over this many samples
-const int DISPLAY_INTERVAL_MS = 500; // when auto-display is on, display every this many milli-seconds
-const int VICTORYTIME=4000;
-
-int readCount = 0; // for determining how many sample cycle occur per display interval
-
-// vars for current PWM duty cycle
-int pwmValue;
-boolean updatePwm = false;
-
-int blinkState=0;
-int fastBlinkState=0;
 unsigned long time = 0;
-unsigned long currentTime = 0;
-unsigned long lastFastBlinkTime = 0;
-unsigned long lastBlinkTime = 0;
 unsigned long timeDisplay = 0;
-
-// current display level
-int level = -1;
-
-// var for looping through arrays
-int i = 0;
-int x = 0;
-int y = 0;
-
 
 void setup() {
   Serial.begin(57600);
   wattHourDisplay.begin();
   wattHourDisplay.show();
   Serial.println(versionStr);
-  pinMode(relayPin, OUTPUT);
-  digitalWrite(relayPin,LOW);
-  for(i = 0; i < numLevels; i++) pinMode(pin[i],OUTPUT);
+  pinMode(DISCORELAY, OUTPUT);
+  digitalWrite(DISCORELAY,LOW);
   getVoltages();
 }
 
-boolean levelLock = false;
-int senseLevel = -1;
-
 void loop() {
-
   getVoltages();
-
   getCurrent();
-  setpwmvalue();
-  readCount++;
-  
-  
- //First deal with the blink  
+  doSafety();
 
-          time = millis();
-          currentTime=millis();
-          if (((currentTime - lastBlinkTime) > 600) && blinkState==1){
-               //                  Serial.println("I just turned pwm to 0.");
-             //     pwmValue=0;
-                  blinkState=0;
-                       //   analogWrite(whichPin[i], pwmValue);
-                  lastBlinkTime=currentTime;
-                } else if (((currentTime - lastBlinkTime) > 600) && blinkState==0){
-                 //   Serial.println("I just turned blinkstate to 1.");
-                   blinkState=1; 
-                   lastBlinkTime=currentTime;
-                }
-                
-
-          if (((currentTime - lastFastBlinkTime) > 180) && fastBlinkState==1){
-               //                  Serial.println("I just turned pwm to 0.");
-             //     pwmValue=0;
-                  fastBlinkState=0;
-                       //   analogWrite(whichPin[i], pwmValue);
-                  lastFastBlinkTime=currentTime;
-                } else if (((currentTime - lastFastBlinkTime) > 150) && fastBlinkState==0){
-                 //   Serial.println("I just turned blinkstate to 1.");
-                    fastBlinkState=1; 
-                   lastFastBlinkTime=currentTime;
-                }  
-
-
-//Test for Twelve Volt Mode
-// Serial.println ("Twelve Volt Mode is in effect."); 
-
-
-
-//Serial.println( twelveVoltProtectionMode ? "Twelve Volt Protection Mode is true" : "Twelve Volt Protection Mode is false");
-  
-  //protect the ultracapacitors if needed
-
-
- 
-if (voltage > maxVoltPlusRail){
-
-   digitalWrite(relayPin, HIGH); 
-   plusRailHysteresis=1;
-  }
-  
-if (plusRailHysteresis==1 && voltage < plusRailComeBackInVoltage){
- digitalWrite(relayPin, LOW);
- plusRailHysteresis=0;
- } 
-
-if (voltage > dangerVoltPlusRail){
-   dangerVoltageState=1;
-  } else { 
-    dangerVoltageState=0;
-  } 
-  
-    //Set the desired lighting states. 
-      
-      senseLevel = -1;
-      if (voltage <=levelVolt[0]){
-        senseLevel=0;
-    //    Serial.println("Level Mode = 1");
-        desiredState[0]=1;
-      } else {
-      
-      for(i = 0; i < numLevels; i++) {
-        
-        if(voltage >= levelVolt[i]){
-          senseLevel = i;
-          desiredState[i]=2;
-          levelMode=2;
-        } else desiredState[i]=0;
-     //   if (minusAlert == true) desiredState[i] = 3;  // make all lights blink if minusAlert is true, get attention to text display
-      }
-      }
-      
-      level=senseLevel;
-  //    Serial.print("Level: ");
-   //   Serial.println(level);
-     if (level == (numLevels-1)){
-  // Serial.print("LevelMode = 1");
-        desiredState[level-1] = 3; //workaround
-      }
-      
-      // End setting desired states. 
-   if (dangerVoltageState){
-      for(i = 0; i < numLevels; i++) {
-        desiredState[i] = 3;
-      }
-   }    
-   
-    
-    // Do the desired states. 
-    // loop through each led and turn on/off or adjust PWM
-
-     
-                
-    for(i = 0; i < numPins; i++) {
-
-      if(levelType[i]==pwm) {
-      
-        if(desiredState[i]==2){
-          analogWrite(whichPin[i], pwmValue);
-         
-          state[i] = 2;}
-        else if (desiredState[i]==0){
-          analogWrite(whichPin[i], 0);
-          state[i] = 0;}
-        else if (desiredState[i]==1 && blinkState==1){
-         analogWrite(whichPin[i], pwmValue);
-         state[i] = 1;}
-        else if (desiredState[i]==1 && blinkState==0){
-         analogWrite(whichPin[i], 0);
-         state[i] = 1;}
-        else if (desiredState[i]==3 && fastBlinkState==1){
-         analogWrite(whichPin[i], pwmValue);
-         state[i] = 1;}
-        else if (desiredState[i]==3 && fastBlinkState==0){
-         analogWrite(whichPin[i], 0);
-         state[i] = 1; 
-         
-      }
-    } 
-    } //end for
-    
-    //Now show the - Team how hard to pedal. 
-    
-   
-
-    
   if(time - timeDisplay > DISPLAY_INTERVAL_MS){
     timeDisplay = time;
     printDisplay();
     updateDisplay();
-    readCount = 0;
   }
-  
 }
 
-void setpwmvalue()
-{
-  
-  // The effective voltage of a square wave is
-  // Veff = Vin * sqrt(k)
-  // where k = t/T is the duty cycle
-  
-  // If you want to make 12V from a 20V input you have to use
-  // k = (Veff/Vin)^2 = (12/20)^2 = 0.36
-
-  int newVal = 0;
-
-  if (voltage <= maxVoltLEDs) {
-    newVal = 255.0;
+void doSafety() {
+  if (volts > MAX_VOLTS){
+    digitalWrite(DISCORELAY, HIGH);
   }
-  else {
-    newVal = maxVoltLEDs / voltage * 255.0;
-  }
-  
-// if(voltage <= 24) {
-// pwmvalue24V = 255.0;
-// }
-// else {
-// pwmvalue24V = sq(24 / voltage) * 255.0;
-// }
 
-  if(newVal != pwmValue) {
-    pwmValue = newVal;
-    updatePwm = true;
+  if (volts < RECOVERY_VOLTS){
+    digitalWrite(DISCORELAY, LOW);
   }
+
+  dangerState = (volts > DANGER_VOLTS);
 }
 
 void getCurrent(){
@@ -326,67 +85,27 @@ void getCurrent(){
   for(int j = 0; j < OVERSAMPLING; j++) plusRailAmpsRaw += analogRead(AMPSPIN) - AMPOFFSET;
   plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF;
   if( plusRailAmps < NOISYZERO ) plusRailAmps = 0; // we assume anything near or below zero is a reading error
-  wattage = voltage * plusRailAmps;
+  wattage = volts * plusRailAmps;
 }
 
 void getVoltages(){
- 
- //first two lines are for + rail
-  adcvalue = analogRead(voltPin);
-  voltage = average(adc2volts(adcvalue), voltage);
-  
-}
-
-//Future simplification / generalization
-void protectUltracap(int whichRail){
-
-  // Turn OFF the relay to protect either the minus or the plus rail 
-  
-}
-
-//Future simplification / generalization
-void restoreUltracapAfterHysteresis(){
-  // Turn ON the relay for normal operation
+  adcvalue = analogRead(VOLTPIN);
+  volts = average(adc2volts(adcvalue), volts);
 }
 
 float average(float val, float avg){
-  if(avg == 0)
-    avg = val;
+  if(avg == 0) avg = val;
   return (val + (avg * (AVG_CYCLES - 1))) / AVG_CYCLES;
 }
 
-static int volts2adc(float v){
- /* voltage calculations
-*
-* Vout = Vin * R2/(R1+R2), where R1 = 100k, R2 = 10K
-* 30V * 10k/110k = 2.72V // at ADC input, for a 55V max input range
-*
-* Val = Vout / 5V max * 1024 adc val max (2^10 = 1024 max vaue for a 10bit ADC)
-* 2.727/5 * 1024 = 558.4896
-*/
-//int led3volts0 = 559;
-
-/* 24v
-* 24v * 10k/110k = 2.181818181818182
-* 2.1818/5 * 1024 = 446.836363636363636
-*/
-//int led2volts4 = 447;
-
-//adc = v * 10/110/5 * 1024 == v * 18.618181818181818;
-
-return v * voltcoeff;
-}
-
-
-
 float adc2volts(float adc){
   // v = adc * 110/10 * 5 / 1024 == adc * 0.0537109375;
-  return adc * (1 / voltcoeff); // 55 / 1024 = 0.0537109375;
+  return adc * (1 / VOLTCOEFF); // 55 / 1024 = 0.0537109375;
 }
 
 void printDisplay(){
   Serial.print("volts: ");
-  Serial.print(voltage);
+  Serial.print(volts);
   Serial.print(", DC Amps: ");
   Serial.print(plusRailAmps);
   Serial.print(" (");
@@ -395,14 +114,6 @@ void printDisplay(){
   Serial.print(", DC Watts: ");
   Serial.print(wattage);
 
-  Serial.print(", Levels ");
-  for(i = 0; i < numLevels; i++) {
-    Serial.print(i);
-    Serial.print(": ");
-    Serial.print(state[i]);
-    Serial.print(", ");
-  }
-  
   Serial.println("");
   Serial.println();
 }
