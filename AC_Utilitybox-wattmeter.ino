@@ -1,6 +1,7 @@
 /* AC utility box with wattmeter and pedalometer
  * using addressible LEDs for both */
 
+#include <Adafruit_NeoPixel.h>
 char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer";
 
 #define VOLTPIN A0 // Voltage Sensor Pin
@@ -10,15 +11,31 @@ char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer";
 #define AMPCOEFF 8.111
 #define AMPOFFSET 510.6 // when current sensor is at 0 amps this is the ADC value
 float wattage = 0; // what is our present measured wattage
+#define VOLTLEDSTRIPPIN 13 // what pin the data input to the voltage LED strip is connected to
+#define NUM_VOLTLEDS 48 // four 12-LED strips side by side, facing the same direction
+Adafruit_NeoPixel voltLedStrip = Adafruit_NeoPixel(NUM_VOLTLEDS, VOLTLEDSTRIPPIN, NEO_GRB + NEO_KHZ800);
+
+// levels at which each LED turns green (normally all red unless below first voltage)
+const float ledLevels[12+1] = { // the pedalometer is four strips of 12 side by side...
+  22.0, 22.5, 23.0, 23.5, 24.0, 24.5, 25.0, 25.5, 26.0, 26.5, 27.0, 27.5, 28.0 };
+
 #define WATTHOUR_DISPLAY_PIN    4
 #define WATTHOUR_DISPLAY_PIXELS (8*32)
 // bottom right is first pixel, goes up 8, left 1, down 8, left 1...
 // https://www.aliexpress.com/item/8-32-Pixel/32225275406.html
-#include <Adafruit_NeoPixel.h>
 #include "font1.h"
 uint32_t fontColor = Adafruit_NeoPixel::Color(175,157,120);
 uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,0);
 Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, WATTHOUR_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
+
+#define LEDBRIGHTNESS 127 // brightness of addressible LEDs (0 to 255)
+#define BLINK_PERIOD 1200
+#define FAST_BLINK_PERIOD 300
+uint32_t red = Adafruit_NeoPixel::Color(LEDBRIGHTNESS,0,0); // load these handy Colors
+uint32_t green = Adafruit_NeoPixel::Color(0,LEDBRIGHTNESS,0);
+uint32_t blue = Adafruit_NeoPixel::Color(0,0,LEDBRIGHTNESS);
+uint32_t white = Adafruit_NeoPixel::Color(LEDBRIGHTNESS,LEDBRIGHTNESS,LEDBRIGHTNESS);
+uint32_t dark = Adafruit_NeoPixel::Color(0,0,0);
 
 #define DISCORELAY 2 // relay cutoff output pin // NEVER USE 13 FOR A RELAY
 #define VOLTCOEFF 13.36  // larger number interprets as lower voltage
@@ -32,6 +49,9 @@ Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, W
 #define RECOVERY_VOLTS 23.0 // when to close the safety relay
 #define DANGER_VOLTS 30.8  // when to fast-flash white (slow-flash above last ledLevels)
 bool dangerState = false;
+int lastLedLevel = 0; // for LED strip hysteresis
+int nowLedLevel = 0; // for LED strip
+#define LEDLEVELHYSTERESIS 0.6 // how many volts of hysteresis for gas gauge
 
 int adcvalue = 0;
 
@@ -43,10 +63,11 @@ int plusRailAmpsRaw;
 #define AVG_CYCLES 50 // average measured voltage over this many samples
 #define DISPLAY_INTERVAL_MS 500 // when auto-display is on, display every this many milli-seconds
 
-unsigned long time = 0;
 unsigned long timeDisplay = 0;
 
 void setup() {
+  voltLedStrip.begin(); // initialize the addressible LEDs
+  voltLedStrip.show(); // clear their state
   Serial.begin(57600);
   wattHourDisplay.begin();
   wattHourDisplay.show();
@@ -60,13 +81,85 @@ void loop() {
   getVoltages();
   getCurrent();
   doSafety();
+  doLeds();
 
-  if(time - timeDisplay > DISPLAY_INTERVAL_MS){
-    timeDisplay = time;
+  if(millis() - timeDisplay > DISPLAY_INTERVAL_MS){
+    timeDisplay = millis();
     printDisplay();
     updateDisplay();
   }
 }
+
+void doLeds(){
+  bool blinkState = millis() % BLINK_PERIOD > BLINK_PERIOD / 2;
+  bool fastBlinkState = millis() % FAST_BLINK_PERIOD > FAST_BLINK_PERIOD / 2;
+
+  nowLedLevel = 0; // init value for this round
+  for(char ledNum = 0; ledNum < NUM_VOLTLEDS; ledNum++) { // go through all but the last voltage in ledLevels[]
+    byte i = ledNum % 12; // there are four rows of 12 leds and this is a dumb hack
+    if (volts < ledLevels[0]) { // if voltage below minimum
+      voltLedStrip.setPixelColor(ledNum,dark);  // all lights out
+    } else if (volts > ledLevels[12]) { // if voltage beyond highest level
+      if (blinkState) { // make the lights blink
+        voltLedStrip.setPixelColor(ledNum,white);  // blinking white
+      } else {
+        voltLedStrip.setPixelColor(ledNum,red);  // blinking red
+      }
+    } else { // voltage somewhere in between
+      voltLedStrip.setPixelColor(ledNum,dark);  // otherwise dark
+      if (volts > ledLevels[i]) { // but if enough voltage
+        nowLedLevel = i+1; // store what level we light up to
+      }
+    }
+  }
+
+  if (nowLedLevel > 0) { // gas gauge in effect
+    if ((volts + LEDLEVELHYSTERESIS > ledLevels[nowLedLevel]) && (lastLedLevel == nowLedLevel+1)) {
+        nowLedLevel = lastLedLevel;
+      } else {
+        lastLedLevel = nowLedLevel;
+      }
+    uint32_t pixelColor;
+    for(int i = 0; i < nowLedLevel; i++) { // gas gauge effect
+      if (nowLedLevel < 5) {
+        if (blinkState) { // blinking red
+          pixelColor = red;
+        } else {
+          pixelColor = dark;
+        }
+      } else if (nowLedLevel > 11) {
+        if (blinkState) { // blinking white
+          pixelColor = white;
+        } else {
+          pixelColor = dark;
+        }
+      } else if (nowLedLevel > 10) {
+        pixelColor = white;
+      } else {
+        pixelColor = green;
+      }
+      if (i >= 20) pixelColor = white; // override with white for LEDs 20 and above
+      voltLedStrip.setPixelColor(i,pixelColor);
+      voltLedStrip.setPixelColor(12+i,pixelColor);
+      voltLedStrip.setPixelColor(24+i,pixelColor);
+      voltLedStrip.setPixelColor(36+i,pixelColor);
+    }
+  } else {
+  lastLedLevel = 0; // don't confuse the hysteresis
+  }
+
+  if (dangerState){ // in danger fastblink white
+    for(int i = 0; i < NUM_VOLTLEDS; i++) {
+      if (fastBlinkState) { // make the lights blink FAST
+        voltLedStrip.setPixelColor(i,white);  // blinking white
+      } else {
+        voltLedStrip.setPixelColor(i,red);  // blinking red
+      }
+    }
+  }
+
+  voltLedStrip.show(); // actually update the LED strip
+} // END doLeds()
 
 void doSafety() {
   if (volts > MAX_VOLTS){
