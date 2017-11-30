@@ -1,0 +1,3 @@
+connect the plus wire to the inverter to PLUSOUT and the ultracapacitors plus to PLUSRAIL of the current sensor, using thick wires that are heavily soldered to the sensor
+
+but don't overheat the sensor in the process of soldering the thick wires to it.  use the blue 100 watt soldering iron for this!  Weller 100P
