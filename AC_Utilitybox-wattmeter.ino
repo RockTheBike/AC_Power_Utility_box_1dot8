@@ -34,7 +34,7 @@ Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, W
 uint32_t red = Adafruit_NeoPixel::Color(LEDBRIGHTNESS,0,0); // load these handy Colors
 uint32_t green = Adafruit_NeoPixel::Color(0,LEDBRIGHTNESS,0);
 uint32_t blue = Adafruit_NeoPixel::Color(0,0,LEDBRIGHTNESS);
-uint32_t white = Adafruit_NeoPixel::Color(LEDBRIGHTNESS,LEDBRIGHTNESS,LEDBRIGHTNESS);
+uint32_t white = Adafruit_NeoPixel::Color(80,80,80); // reduced brightness to keep power consumption on 5V line under control
 uint32_t dark = Adafruit_NeoPixel::Color(0,0,0);
 
 #define DISCORELAY 2 // relay cutoff output pin // NEVER USE 13 FOR A RELAY
