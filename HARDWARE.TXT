@@ -10,4 +10,4 @@ install a 3 watt 2.7 ohm resistor (big brown resistor) in D4 instead of a wire j
 
 connect the red power wires of both LED strips (watt numeric display and 48-LED pedalometer) to VDD hole on board (not VCC)
 
-install a 100uF 25V capacitor between VDD hole and ground
+install an 1800uF-2200uF capacitor between VDD hole and ground
