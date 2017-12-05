@@ -8,8 +8,8 @@ char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer";
 #define AMPSPIN A3 // Current Sensor Pin
 #define NOISYZERO 1.0  // assume any smaller measurement should be 0
 #define OVERSAMPLING 25.0 // analog oversampling
-#define AMPCOEFF 8.111
-#define AMPOFFSET 510.6 // when current sensor is at 0 amps this is the ADC value
+#define AMPCOEFF 3.267
+#define AMPOFFSET 516.0 // when current sensor is at 0 amps this is the ADC value
 float wattage = 0; // what is our present measured wattage
 #define VOLTLEDSTRIPPIN 13 // what pin the data input to the voltage LED strip is connected to
 #define NUM_VOLTLEDS 48 // four 12-LED strips side by side, facing the same direction
@@ -176,7 +176,7 @@ void doSafety() {
 void getCurrent(){
   plusRailAmpsRaw = 0; // reset adder
   for(int j = 0; j < OVERSAMPLING; j++) plusRailAmpsRaw += analogRead(AMPSPIN) - AMPOFFSET;
-  plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF;
+  plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF * -1; // negative
   if( plusRailAmps < NOISYZERO ) plusRailAmps = 0; // we assume anything near or below zero is a reading error
   wattage = volts * plusRailAmps;
 }
