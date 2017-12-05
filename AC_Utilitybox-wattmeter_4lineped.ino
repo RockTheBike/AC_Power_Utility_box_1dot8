@@ -6,7 +6,7 @@
 * Jake <jake@spaz.org>
 * Paul@rockthebike.com
 *
-* Notes: 
+* Notes:
 * 1.6 - moved version to the top, started protocol of commenting every change in file and in Git commit
 * 1.7 - jake 6-21-2012 disable minusalert until minus rail is pedaled at least once (minusAlertEnable and startupMinusVoltage)
 * 1.8 -- FF added annoying light sequence for when relay fails or customer bypasses protection circuitry.+
@@ -83,14 +83,14 @@ int dangerVoltageState=0;
 // vars to store temp values
 int adcvalue = 0;
 
-//Voltage related variables. 
+//Voltage related variables.
 float voltage = 0;
 //float minusRailVoltage=0;
 //float startupMinusVoltage=0;  // inital read of minus rail, to see if minus is being pedaled at all
 
 //Current related variables
 float plusRailAmps=0;
-float ACAmps=0; 
+float ACAmps=0;
 int plusRailAmpsRaw;
 int ACAmpsRaw;
 
@@ -140,9 +140,7 @@ boolean levelLock = false;
 int senseLevel = -1;
 
 void loop() {
-
   getVoltages();
-
   getCurrent();
   setpwmvalue();
   readCount++;
@@ -295,7 +293,7 @@ void setpwmvalue()
   // The effective voltage of a square wave is
   // Veff = Vin * sqrt(k)
   // where k = t/T is the duty cycle
-  
+
   // If you want to make 12V from a 20V input you have to use
   // k = (Veff/Vin)^2 = (12/20)^2 = 0.36
 
@@ -307,7 +305,7 @@ void setpwmvalue()
   else {
     newVal = maxVoltLEDs / voltage * 255.0;
   }
-  
+
 // if(voltage <= 24) {
 // pwmvalue24V = 255.0;
 // }
@@ -330,18 +328,18 @@ void getCurrent(){
 }
 
 void getVoltages(){
- 
+
  //first two lines are for + rail
-  adcvalue = analogRead(voltPin);
+  adcvalue = analogRead(VOLTPIN);
   voltage = average(adc2volts(adcvalue), voltage);
-  
+
 }
 
 //Future simplification / generalization
 void protectUltracap(int whichRail){
 
-  // Turn OFF the relay to protect either the minus or the plus rail 
-  
+  // Turn OFF the relay to protect either the minus or the plus rail
+
 }
 
 //Future simplification / generalization
@@ -402,7 +400,7 @@ void printDisplay(){
     Serial.print(state[i]);
     Serial.print(", ");
   }
-  
+
   Serial.println("");
   Serial.println();
 }
