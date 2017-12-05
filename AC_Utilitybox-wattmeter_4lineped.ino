@@ -167,6 +167,7 @@ void loop() {
         desiredState[i]=2;
         levelMode=2;
       } else desiredState[i]=0;
+      if (voltage >= levelVolt[1]) desiredState[0]=0; // turn off red row if green is lit up
     }
   }
   level=senseLevel;
