@@ -20,33 +20,16 @@ const int onoff = 1;
 
 const int numLevels = 5;
 
-// Arduino pin for each output level
-const int numPins = 4; // Number of active Arduino Pins for + rail team.
+const int numPins = 4;
 int pin[numPins] = {3, 5, 6, 9};
 
 // voltages at which to turn on each level
-//float levelVolt[numLevels] = {21, 24.0, 27.0};
 float levelVolt[numLevels] = {21.8, 22.8, 25.8, 28.6, 29.5};
-//float levelVolt[numLevels] = {15.0, 17, 19.5, 22.2, 23};
 int levelMode=0; // 0 = off, 1 = blink, 2 = steady
-int whichPin[]={3, 5, 6, 9, 9}; //Mark, please help! 
-
-// voltages at which to turn on each level
-//float levelVolt[numLevels] = {21, 24.0, 27.0};
-//float minusRailLevelVolt[numLevels] = {22.0, 23.5, 24.8, 26.7, 27.2};
-//int minusRailLevelMode=0; // 0 = off, 1 = blink, 2 = steady
-
+int whichPin[]={3, 5, 6, 9, 9};
 int levelType[numLevels] = {pwm, pwm, pwm, pwm, pwm};
 
-
-// type of each level (pwm or onoff)
-
-
-
-// Arduino pins to be used as inputs to voltage sensor. This shows where to connect the wires! 
-const int voltPin = A0; // Voltage Sensor Input
-//const int minusVoltPin = A1; // Voltage Sensor Input
-//const int ACAmpsPin = A2; // Voltage Sensor Input
+#define VOLTPIN A0 // Voltage Sensor Input
 #define AMPSPIN A3 // Current Sensor Pin
 #define NOISYZERO 1.0  // assume any smaller measurement should be 0
 #define OVERSAMPLING 25.0 // analog oversampling
@@ -64,7 +47,7 @@ uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,0);
 Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, WATTHOUR_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
 
 const int relayPin=2;
-const float voltcoeff = 13.25;  // larger numer interprets as lower voltage 
+const float voltcoeff = 13.25;  // larger numer interprets as lower voltage
 
 //MAXIMUM VOLTAGE TO GIVE LEDS
 
@@ -144,152 +127,91 @@ void loop() {
   getCurrent();
   setpwmvalue();
   readCount++;
-  
-  
- //First deal with the blink  
-
-          time = millis();
-          currentTime=millis();
-          if (((currentTime - lastBlinkTime) > 600) && blinkState==1){
-               //                  Serial.println("I just turned pwm to 0.");
-             //     pwmValue=0;
-                  blinkState=0;
-                       //   analogWrite(whichPin[i], pwmValue);
-                  lastBlinkTime=currentTime;
-                } else if (((currentTime - lastBlinkTime) > 600) && blinkState==0){
-                 //   Serial.println("I just turned blinkstate to 1.");
-                   blinkState=1; 
-                   lastBlinkTime=currentTime;
-                }
-                
-
-          if (((currentTime - lastFastBlinkTime) > 180) && fastBlinkState==1){
-               //                  Serial.println("I just turned pwm to 0.");
-             //     pwmValue=0;
-                  fastBlinkState=0;
-                       //   analogWrite(whichPin[i], pwmValue);
-                  lastFastBlinkTime=currentTime;
-                } else if (((currentTime - lastFastBlinkTime) > 150) && fastBlinkState==0){
-                 //   Serial.println("I just turned blinkstate to 1.");
-                    fastBlinkState=1; 
-                   lastFastBlinkTime=currentTime;
-                }  
-
-
-//Test for Twelve Volt Mode
-// Serial.println ("Twelve Volt Mode is in effect."); 
-
-
-
-//Serial.println( twelveVoltProtectionMode ? "Twelve Volt Protection Mode is true" : "Twelve Volt Protection Mode is false");
-  
-  //protect the ultracapacitors if needed
-
-
- 
-if (voltage > maxVoltPlusRail){
-
-   digitalWrite(relayPin, HIGH); 
-   plusRailHysteresis=1;
+  time = millis();
+  currentTime=millis();
+  if (((currentTime - lastBlinkTime) > 600) && blinkState==1){
+    blinkState=0;
+    lastBlinkTime=currentTime;
+  } else if (((currentTime - lastBlinkTime) > 600) && blinkState==0){
+     blinkState=1;
+     lastBlinkTime=currentTime;
   }
-  
-if (plusRailHysteresis==1 && voltage < plusRailComeBackInVoltage){
- digitalWrite(relayPin, LOW);
- plusRailHysteresis=0;
- } 
-
-if (voltage > dangerVoltPlusRail){
-   dangerVoltageState=1;
-  } else { 
+  if (((currentTime - lastFastBlinkTime) > 180) && fastBlinkState==1){
+    fastBlinkState=0;
+    lastFastBlinkTime=currentTime;
+  } else if (((currentTime - lastFastBlinkTime) > 150) && fastBlinkState==0){
+     fastBlinkState=1;
+     lastFastBlinkTime=currentTime;
+  }
+  if (voltage > maxVoltPlusRail){
+    digitalWrite(relayPin, HIGH);
+    plusRailHysteresis=1;
+  }
+  if (plusRailHysteresis==1 && voltage < plusRailComeBackInVoltage){
+    digitalWrite(relayPin, LOW);
+    plusRailHysteresis=0;
+  }
+  if (voltage > dangerVoltPlusRail){
+    dangerVoltageState=1;
+  } else {
     dangerVoltageState=0;
-  } 
-  
-    //Set the desired lighting states. 
-      
-      senseLevel = -1;
-      if (voltage <=levelVolt[0]){
-        senseLevel=0;
-    //    Serial.println("Level Mode = 1");
-        desiredState[0]=1;
-      } else {
-      
-      for(i = 0; i < numLevels; i++) {
-        
-        if(voltage >= levelVolt[i]){
-          senseLevel = i;
-          desiredState[i]=2;
-          levelMode=2;
-        } else desiredState[i]=0;
-     //   if (minusAlert == true) desiredState[i] = 3;  // make all lights blink if minusAlert is true, get attention to text display
+  }
+  senseLevel = -1;
+  if (voltage <=levelVolt[0]){ // if voltage is below first level
+    senseLevel=0;
+    desiredState[0]=1; // blink first row of LEDs
+  } else {
+    for(i = 0; i < numLevels; i++) {
+      if(voltage >= levelVolt[i]){ // turn on rows if voltage is above their level
+        senseLevel = i;
+        desiredState[i]=2;
+        levelMode=2;
+      } else desiredState[i]=0;
+    }
+  }
+  level=senseLevel;
+  if (level == (numLevels-1)){
+    desiredState[level-1] = 3; //workaround to blink white
+  }
+  if (dangerVoltageState){
+    for(i = 0; i < numLevels; i++) {
+      desiredState[i] = 3;
+    }
+  }
+  for(i = 0; i < numPins; i++) {
+    if(levelType[i]==pwm) {
+      if(desiredState[i]==2){
+        analogWrite(whichPin[i], pwmValue);
+        state[i] = 2;
       }
+      else if (desiredState[i]==0){
+        analogWrite(whichPin[i], 0);
+        state[i] = 0;}
+      else if (desiredState[i]==1 && blinkState==1){
+        analogWrite(whichPin[i], pwmValue);
+        state[i] = 1;}
+      else if (desiredState[i]==1 && blinkState==0){
+        analogWrite(whichPin[i], 0);
+        state[i] = 1;}
+      else if (desiredState[i]==3 && fastBlinkState==1){
+        analogWrite(whichPin[i], pwmValue);
+        state[i] = 1;}
+      else if (desiredState[i]==3 && fastBlinkState==0){
+        analogWrite(whichPin[i], 0);
+        state[i] = 1;
       }
-      
-      level=senseLevel;
-  //    Serial.print("Level: ");
-   //   Serial.println(level);
-     if (level == (numLevels-1)){
-  // Serial.print("LevelMode = 1");
-        desiredState[level-1] = 3; //workaround
-      }
-      
-      // End setting desired states. 
-   if (dangerVoltageState){
-      for(i = 0; i < numLevels; i++) {
-        desiredState[i] = 3;
-      }
-   }    
-   
-    
-    // Do the desired states. 
-    // loop through each led and turn on/off or adjust PWM
-
-     
-                
-    for(i = 0; i < numPins; i++) {
-
-      if(levelType[i]==pwm) {
-      
-        if(desiredState[i]==2){
-          analogWrite(whichPin[i], pwmValue);
-         
-          state[i] = 2;}
-        else if (desiredState[i]==0){
-          analogWrite(whichPin[i], 0);
-          state[i] = 0;}
-        else if (desiredState[i]==1 && blinkState==1){
-         analogWrite(whichPin[i], pwmValue);
-         state[i] = 1;}
-        else if (desiredState[i]==1 && blinkState==0){
-         analogWrite(whichPin[i], 0);
-         state[i] = 1;}
-        else if (desiredState[i]==3 && fastBlinkState==1){
-         analogWrite(whichPin[i], pwmValue);
-         state[i] = 1;}
-        else if (desiredState[i]==3 && fastBlinkState==0){
-         analogWrite(whichPin[i], 0);
-         state[i] = 1; 
-         
-      }
-    } 
-    } //end for
-    
-    //Now show the - Team how hard to pedal. 
-    
-   
-
-    
+    }
+  } //end for
   if(time - timeDisplay > DISPLAY_INTERVAL_MS){
     timeDisplay = time;
     printDisplay();
     updateDisplay();
     readCount = 0;
   }
-  
-}
+} // end loop()
 
-void setpwmvalue()
-{
-  
+void setpwmvalue() {
+
   // The effective voltage of a square wave is
   // Veff = Vin * sqrt(k)
   // where k = t/T is the duty cycle
