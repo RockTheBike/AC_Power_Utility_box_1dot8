@@ -28,6 +28,7 @@ uint32_t fontColor = Adafruit_NeoPixel::Color(175,157,120);
 uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,0);
 Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, WATTHOUR_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
 
+#define WATTDISPLAYVOLTAGE 19.5 // below this voltage, watthour display is blanked
 #define LEDBRIGHTNESS 127 // brightness of addressible LEDs (0 to 255)
 #define BLINK_PERIOD 1200
 #define FAST_BLINK_PERIOD 300
@@ -214,7 +215,9 @@ void printDisplay(){
 void updateDisplay() {
   char buf[]="    "; // stores the number we're going to display
   //sprintf(buf,"%4d",millis()/100);// for testing display
-  sprintf(buf,"%4d",((int)(wattage)/10UL) * 10UL); // quantize to tens of watts
+  if (volts >= WATTDISPLAYVOLTAGE) { // if voltage above minimum
+    sprintf(buf,"%4d",((int)(wattage)/10UL) * 10UL); // quantize to tens of watts
+  } // otherwise buf will remain blank as initialized
   writeWattHourDisplay(buf);
 }
 
