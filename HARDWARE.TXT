@@ -1,3 +1,6 @@
+the four strip by 12 LED box-lid pedalometer's data wire connects to Arbduino pin 13
+the wattmeter (a panel of 8x32 LEDs) data wire connects to Arbduino pin 4
+
 only one transistor in Q2 for the safety relays
 
 this build does not work with an external pedalometer, only with the built-in 12x4 addressible mini-pedalometer
@@ -10,4 +13,4 @@ install a 3 watt 2.7 ohm resistor (big brown resistor) in D4 instead of a wire j
 
 connect the red power wires of both LED strips (watt numeric display and 48-LED pedalometer) to VDD hole on board (not VCC)
 
-install a 100uF 25V capacitor between VDD hole and ground
+install a 2200uF 10V capacitor between VDD hole and ground

@@ -1,3 +1,6 @@
+#define VOLTLEDSTRIPPIN         13 // what pin the data input to the voltage LED strip is connected to
+#define WATTHOUR_DISPLAY_PIN    4  // what pin the 8x32 addressible LED panel data pin connects to
+
 /* AC utility box with wattmeter and pedalometer
  * using addressible LEDs for both */
 
@@ -11,7 +14,6 @@ char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer";
 #define AMPCOEFF 3.267
 #define AMPOFFSET 516.0 // when current sensor is at 0 amps this is the ADC value
 float wattage = 0; // what is our present measured wattage
-#define VOLTLEDSTRIPPIN 13 // what pin the data input to the voltage LED strip is connected to
 #define NUM_VOLTLEDS 48 // four 12-LED strips side by side, facing the same direction
 Adafruit_NeoPixel voltLedStrip = Adafruit_NeoPixel(NUM_VOLTLEDS, VOLTLEDSTRIPPIN, NEO_GRB + NEO_KHZ800);
 
@@ -19,7 +21,6 @@ Adafruit_NeoPixel voltLedStrip = Adafruit_NeoPixel(NUM_VOLTLEDS, VOLTLEDSTRIPPIN
 const float ledLevels[12+1] = { // the pedalometer is four strips of 12 side by side...
   22.0, 22.5, 23.0, 23.5, 24.0, 24.5, 25.0, 25.5, 26.0, 26.5, 27.0, 27.5, 28.0 };
 
-#define WATTHOUR_DISPLAY_PIN    4
 #define WATTHOUR_DISPLAY_PIXELS (8*32)
 // bottom right is first pixel, goes up 8, left 1, down 8, left 1...
 // https://www.aliexpress.com/item/8-32-Pixel/32225275406.html
