@@ -1,5 +1,6 @@
 #define VOLTLEDSTRIPPIN         13 // what pin the data input to the voltage LED strip is connected to
 #define WATTHOUR_DISPLAY_PIN    4  // what pin the 8x32 addressible LED panel data pin connects to
+#define PEDALOMETER_TOWER_PIN   12  // what pin the tubular pedaloeter tower data pin connects to
 
 /* AC utility box with wattmeter and pedalometer
  * using addressible LEDs for both */
@@ -28,6 +29,10 @@ const float ledLevels[12+1] = { // the pedalometer is four strips of 12 side by 
 uint32_t fontColor = Adafruit_NeoPixel::Color(175,157,120);
 uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,0);
 Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, WATTHOUR_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
+
+#define PEDALOMETER_TOWER_PIXELS        120 // number of pixels in RAM array
+#define PEDALOMETER_TOWER_MULTIPLES     6 // number of times RAM array / physical LEDs repeat
+Adafruit_NeoPixel pedalometerTower = Adafruit_NeoPixel(PEDALOMETER_TOWER_PIXELS, PEDALOMETER_TOWER_PIN, NEO_GRB + NEO_KHZ800, PEDALOMETER_TOWER_MULTIPLES); // requires RTB fork of Adafruit_NeoPixel library
 
 #define WATTDISPLAYVOLTAGE 19.5 // below this voltage, watthour display is blanked
 #define LEDBRIGHTNESS 127 // brightness of addressible LEDs (0 to 255)
@@ -68,6 +73,8 @@ int plusRailAmpsRaw;
 unsigned long timeDisplay = 0;
 
 void setup() {
+  pedalometerTower.begin(); // initialize the addressible LEDs
+  pedalometerTower.show(); // clear their state
   voltLedStrip.begin(); // initialize the addressible LEDs
   voltLedStrip.show(); // clear their state
   Serial.begin(57600);
@@ -89,6 +96,17 @@ void loop() {
     timeDisplay = millis();
     printDisplay();
     updateDisplay();
+  }
+}
+
+void setPedalometersLevel(char levNum, uint32_t pixelColor) { // 12x4 boxlid array AND 12x60 tower pedalometer
+  voltLedStrip.setPixelColor(levNum,pixelColor);
+  voltLedStrip.setPixelColor(12+levNum,pixelColor);
+  voltLedStrip.setPixelColor(24+levNum,pixelColor);
+  voltLedStrip.setPixelColor(36+levNum,pixelColor);
+  for (char led = 0; led < 5; led++) { // 60 LEDs high = 5 LEDs per level
+    pedalometerTower.setPixelColor(levNum*5+led,pixelColor); // tower is 60 lights up, 60 down, repeated 6 times by pedalometerTower.show()
+    pedalometerTower.setPixelColor((120-levNum*5)-led,pixelColor); // this is the 60 down side
   }
 }
 
@@ -161,6 +179,7 @@ void doLeds(){
   }
 
   voltLedStrip.show(); // actually update the LED strip
+  pedalometerTower.show(); // actually update the LED strip
 } // END doLeds()
 
 void doSafety() {
