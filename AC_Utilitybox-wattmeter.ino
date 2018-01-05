@@ -99,14 +99,14 @@ void loop() {
   }
 }
 
-void setPedalometersLevel(char levNum, uint32_t pixelColor) { // 12x4 boxlid array AND 12x60 tower pedalometer
-  voltLedStrip.setPixelColor(levNum,pixelColor);
+void setPedalometersLevel(char levNum, uint32_t pixelColor) { // 12x4 boxlid array AND 60x12 tower pedalometer
+  voltLedStrip.setPixelColor(levNum,pixelColor); // boxlid array is four 12-strips side-by-side
   voltLedStrip.setPixelColor(12+levNum,pixelColor);
   voltLedStrip.setPixelColor(24+levNum,pixelColor);
   voltLedStrip.setPixelColor(36+levNum,pixelColor);
   for (char led = 0; led < 5; led++) { // 60 LEDs high = 5 LEDs per level
     pedalometerTower.setPixelColor(levNum*5+led,pixelColor); // tower is 60 lights up, 60 down, repeated 6 times by pedalometerTower.show()
-    pedalometerTower.setPixelColor((120-levNum*5)-led,pixelColor); // this is the 60 down side
+    pedalometerTower.setPixelColor((119-levNum*5)-led,pixelColor); // this is the 60 down side
   }
 }
 
@@ -115,25 +115,21 @@ void doLeds(){
   bool fastBlinkState = millis() % FAST_BLINK_PERIOD > FAST_BLINK_PERIOD / 2;
 
   nowLedLevel = 0; // init value for this round
-  for(char ledNum = 0; ledNum < NUM_VOLTLEDS; ledNum++) { // go through all but the last voltage in ledLevels[]
-    byte i = ledNum % 12; // there are four rows of 12 leds and this is a dumb hack
-    if (volts < ledLevels[0]) { // if voltage below minimum
-      voltLedStrip.setPixelColor(ledNum,dark);  // all lights out
-    } else if (volts > ledLevels[12]) { // if voltage beyond highest level
+  for(char levNum = 0; levNum < 12; levNum++) { // go through all but the last voltage in ledLevels[]
+    setPedalometersLevel(levNum,dark);  // default to dark
+    if (volts > ledLevels[12]) { // if voltage beyond highest level
       if (blinkState) { // make the lights blink
-        voltLedStrip.setPixelColor(ledNum,white);  // blinking white
+        setPedalometersLevel(levNum,white);  // blinking white
       } else {
-        voltLedStrip.setPixelColor(ledNum,red);  // blinking red
+        setPedalometersLevel(levNum,red);  // blinking red
       }
-    } else { // voltage somewhere in between
-      voltLedStrip.setPixelColor(ledNum,dark);  // otherwise dark
-      if (volts > ledLevels[i]) { // but if enough voltage
-        nowLedLevel = i+1; // store what level we light up to
-      }
+    }
+    if (volts > ledLevels[levNum]) { // but if enough voltage
+      nowLedLevel = levNum+1; // store what level we light up to
     }
   }
 
-  if (nowLedLevel > 0) { // gas gauge in effect
+  if (nowLedLevel > 0 && volts <= ledLevels[12]) { // gas gauge in effect
     if ((volts + LEDLEVELHYSTERESIS > ledLevels[nowLedLevel]) && (lastLedLevel == nowLedLevel+1)) {
         nowLedLevel = lastLedLevel;
       } else {
@@ -147,37 +143,33 @@ void doLeds(){
         } else {
           pixelColor = dark;
         }
-      } else if (nowLedLevel > 11) {
+      } else if (nowLedLevel > 12) {
         if (blinkState) { // blinking white
           pixelColor = white;
         } else {
           pixelColor = dark;
         }
-      } else if (nowLedLevel > 10) {
+      } else if (nowLedLevel > 11) {
         pixelColor = white;
       } else {
         pixelColor = green;
+        if (i >= 10) pixelColor = white; // override with white for levels 10 and 11
       }
-      if (i >= 20) pixelColor = white; // override with white for LEDs 20 and above
-      voltLedStrip.setPixelColor(i,pixelColor);
-      voltLedStrip.setPixelColor(12+i,pixelColor);
-      voltLedStrip.setPixelColor(24+i,pixelColor);
-      voltLedStrip.setPixelColor(36+i,pixelColor);
+      setPedalometersLevel(i,pixelColor);
     }
   } else {
   lastLedLevel = 0; // don't confuse the hysteresis
   }
 
   if (dangerState){ // in danger fastblink white
-    for(int i = 0; i < NUM_VOLTLEDS; i++) {
+    for(int i = 0; i < 12; i++) {
       if (fastBlinkState) { // make the lights blink FAST
-        voltLedStrip.setPixelColor(i,white);  // blinking white
+        setPedalometersLevel(i,white);  // blinking white
       } else {
-        voltLedStrip.setPixelColor(i,red);  // blinking red
+        setPedalometersLevel(i,red);  // blinking red
       }
     }
   }
-
   voltLedStrip.show(); // actually update the LED strip
   pedalometerTower.show(); // actually update the LED strip
 } // END doLeds()
