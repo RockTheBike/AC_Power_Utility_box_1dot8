@@ -12,7 +12,7 @@ char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer";
 #define AMPSPIN A3 // Current Sensor Pin
 #define NOISYZERO 1.0  // assume any smaller measurement should be 0
 #define OVERSAMPLING 25.0 // analog oversampling
-#define AMPCOEFF 8.23
+#define AMPCOEFF 5.75
 #define AMPOFFSET 509.0 // when current sensor is at 0 amps this is the ADC value
 float wattage = 0; // what is our present measured wattage
 #define NUM_VOLTLEDS 48 // four 12-LED strips side by side, facing the same direction
