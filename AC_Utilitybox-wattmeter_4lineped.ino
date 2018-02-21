@@ -115,7 +115,7 @@ void setup() {
   Serial.println(versionStr);
   pinMode(relayPin, OUTPUT);
   digitalWrite(relayPin,LOW);
-  for(i = 0; i < numLevels; i++) pinMode(pin[i],OUTPUT);
+  for(i = 0; i < numPins; i++) pinMode(pin[i],OUTPUT);
   getVoltages();
 }
 
