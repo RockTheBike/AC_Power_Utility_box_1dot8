@@ -88,7 +88,7 @@ const int VICTORYTIME=4000;
 int readCount = 0; // for determining how many sample cycle occur per display interval
 
 // vars for current PWM duty cycle
-int pwmValue;
+int pwmValue = 255;
 boolean updatePwm = false;
 
 int blinkState=0;
@@ -125,7 +125,7 @@ int senseLevel = -1;
 void loop() {
   getVoltages();
   getCurrent();
-  setpwmvalue();
+  //setpwmvalue(); // leave at 255 (default full power)
   readCount++;
   time = millis();
   currentTime=millis();
