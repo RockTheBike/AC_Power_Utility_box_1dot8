@@ -24,7 +24,12 @@ const int numPins = 4;
 int pin[numPins] = {3, 5, 6, 9};
 
 // voltages at which to turn on each level
-float levelVolt[numLevels] = {21.8, 22.8, 25.8, 28.6, 29.5};
+const float levelVolt[numLevels] = {19, 20.6, 22.2, 24.1, 24.1};
+const float maxVoltLEDs = 21.0; //LED
+const float maxVoltPlusRail = 26.0;  //
+const float dangerVoltPlusRail = 26.8;
+const float plusRailComeBackInVoltage = 24.6;
+
 int levelMode=0; // 0 = off, 1 = blink, 2 = steady
 int whichPin[]={3, 5, 6, 9, 9};
 int levelType[numLevels] = {pwm, pwm, pwm, pwm, pwm};
@@ -50,16 +55,7 @@ Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, W
 const int relayPin=2;
 const float voltcoeff = 13.25;  // larger numer interprets as lower voltage
 
-//MAXIMUM VOLTAGE TO GIVE LEDS
-
-const float maxVoltLEDs = 21.0; //LED
-const float maxVoltPlusRail = 30.0;  //
-const float dangerVoltPlusRail = 30.8;
-
-
 //Hysteresis variables
-const float plusRailComeBackInVoltage = 28.2;
-const float plusRailComeBackInVoltagetwelveVoltMode = 13.7;
 int plusRailHysteresis=0;
 int dangerVoltageState=0;
 //int minusRailHysteresis=0;
