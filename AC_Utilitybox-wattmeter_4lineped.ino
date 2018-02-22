@@ -33,8 +33,8 @@ int levelType[numLevels] = {pwm, pwm, pwm, pwm, pwm};
 #define AMPSPIN A3 // Current Sensor Pin
 #define NOISYZERO 1.0  // assume any smaller measurement should be 0
 #define OVERSAMPLING 25.0 // analog oversampling
-#define AMPCOEFF 8.111
-#define AMPOFFSET 510.6 // when current sensor is at 0 amps this is the ADC value
+#define AMPCOEFF 3.5 // this is an oddball ebay current sensor, tested to 35 amps
+#define AMPOFFSET 515.0 // when current sensor is at 0 amps this is the ADC value
 float wattage = 0; // what is our present measured wattage
 #define WATTHOUR_DISPLAY_PIN    4
 #define WATTHOUR_DISPLAY_PIXELS (8*32)
@@ -245,7 +245,7 @@ void setpwmvalue() {
 void getCurrent(){
   plusRailAmpsRaw = 0; // reset adder
   for(int j = 0; j < OVERSAMPLING; j++) plusRailAmpsRaw += analogRead(AMPSPIN) - AMPOFFSET;
-  plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF;
+  plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF * -1; // current flow from PLUSOUT to PLUSRAIL
   if( plusRailAmps < NOISYZERO ) plusRailAmps = 0; // we assume anything near or below zero is a reading error
   wattage = voltage * plusRailAmps;
 }
@@ -312,6 +312,8 @@ void printDisplay(){
   Serial.print(plusRailAmps);
   Serial.print(" (");
   Serial.print((float)plusRailAmpsRaw / OVERSAMPLING,1);
+  Serial.print(") (");
+  Serial.print(analogRead(AMPSPIN));
   Serial.print(")");
   Serial.print(", DC Watts: ");
   Serial.print(wattage);
