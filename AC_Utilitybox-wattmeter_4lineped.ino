@@ -38,6 +38,7 @@ int levelType[numLevels] = {pwm, pwm, pwm, pwm, pwm};
 float wattage = 0; // what is our present measured wattage
 #define WATTHOUR_DISPLAY_PIN    4
 #define WATTHOUR_DISPLAY_PIXELS (8*32)
+#define WATTHOUR_DISPLAY_MIN_VOLTAGE 12.0 // turn off display below this voltage
 // bottom right is first pixel, goes up 8, left 1, down 8, left 1...
 // https://www.aliexpress.com/item/8-32-Pixel/32225275406.html
 #include <Adafruit_NeoPixel.h>
@@ -325,15 +326,13 @@ void printDisplay(){
     Serial.print(state[i]);
     Serial.print(", ");
   }
-
-  Serial.println("");
   Serial.println();
 }
 
 void updateDisplay() {
   char buf[]="    "; // stores the number we're going to display
   //sprintf(buf,"%4d",millis()/100);// for testing display
-  sprintf(buf,"%4d",((int)(wattage)/10UL) * 10UL); // quantize to tens of watts
+  if (voltage > WATTHOUR_DISPLAY_MIN_VOLTAGE) sprintf(buf,"%4d",((int)(wattage)/10UL) * 10UL); // quantize to tens of watts
   writeWattHourDisplay(buf);
 }
 
