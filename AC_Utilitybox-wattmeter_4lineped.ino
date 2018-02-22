@@ -160,7 +160,7 @@ void loop() {
   senseLevel = -1;
   if (voltage <=levelVolt[0]){ // if voltage is below first level
     senseLevel=0;
-    desiredState[0]=1; // blink first row of LEDs
+    //desiredState[0]=1; // blink first row of LEDs
   } else {
     for(i = 0; i < numLevels; i++) {
       if(voltage >= levelVolt[i]){ // turn on rows if voltage is above their level
@@ -168,12 +168,12 @@ void loop() {
         desiredState[i]=2;
         levelMode=2;
       } else desiredState[i]=0;
-      if (voltage >= levelVolt[1]) desiredState[0]=0; // turn off red row if green is lit up
+      //if (voltage >= levelVolt[1]) desiredState[0]=0; // turn off red row if green is lit up
     }
   }
   level=senseLevel;
   if (level == (numLevels-1)){
-    desiredState[level-1] = 3; //workaround to blink white
+    desiredState[level-1] = 1; //workaround to blink white
   }
   if (dangerVoltageState){
     for(i = 0; i < numLevels; i++) {
