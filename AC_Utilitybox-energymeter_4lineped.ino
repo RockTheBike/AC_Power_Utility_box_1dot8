@@ -13,6 +13,14 @@
 * 1.9 Started using Chinese inverters labeled "1000W Pure Sine Inverter with AC and DC voltage output screens.
 */
 
+#include <EEPROM.h> // * 1.16 - MPS => Store energy into EEPROM; reset via James Bond switch
+#define WATTHOURS_EEPROM_ADDRESS 20
+#define BACKUP_INTERVAL ((long)60*1000) // how long between periodically storing wattHours in EEPROM
+#define RESET_PIN 12 // when shorted to ground, clear wattHours to zero and store
+unsigned long wattHourTimer = 0; // when we last integrated wattage and time
+unsigned long backupTimer = 0; // when we last stored wattHours in EEPROM
+float wattHours = 0; // wattHours odometer in RAM
+
 char versionStr[] = "AC Utility Box with energy meter";
 
 const int pwm = 0;
@@ -110,6 +118,8 @@ int y = 0;
 
 void setup() {
   Serial.begin(57600);
+  load_watthours(); // read watthours from EEPROM
+  digitalWrite( RESET_PIN, HIGH );  // we want to read with pullup enabled
   wattHourDisplay.begin();
   wattHourDisplay.show();
   Serial.println(versionStr);
@@ -128,6 +138,19 @@ void loop() {
   setpwmvalue();
   readCount++;
   time = millis();
+
+  if (time - wattHourTimer >= 250) calcWattHours(); // calcWattHours resets wattHourTimer
+
+  if( digitalRead( RESET_PIN ) ) {  // reset switch is not resetting
+    if( time - backupTimer >= BACKUP_INTERVAL ) {  // store wattHours into eeprom
+      store_watthours();
+      backupTimer = time;
+    }
+  } else {  // reset switch is resetting
+    reset_watthours();
+    backupTimer = time;
+  }
+
   currentTime=millis();
   if (((currentTime - lastBlinkTime) > 600) && blinkState==1){
     blinkState=0;
@@ -312,7 +335,8 @@ void printDisplay(){
   Serial.print(plusRailAmps);
   Serial.print(" (");
   Serial.print((float)plusRailAmpsRaw / OVERSAMPLING,1);
-  Serial.print(")");
+  Serial.print(") wattHours: ");
+  Serial.print(wattHours);
   Serial.print(", DC Watts: ");
   Serial.print(wattage);
 
@@ -331,7 +355,7 @@ void printDisplay(){
 void updateDisplay() {
   char buf[]="    "; // stores the number we're going to display
   //sprintf(buf,"%4d",millis()/100);// for testing display
-  sprintf(buf,"%4d",((int)(wattage)/10UL) * 10UL); // quantize to tens of watts
+  sprintf(buf,"%4d",(int)(wattHours*10)); // print tenths of wattHours
   writeWattHourDisplay(buf);
 }
 
@@ -364,4 +388,42 @@ void writeWattHourDisplay(char* text) {
   // wattHourDisplay.setPixelColor((FONT_W  )*FONT_H+0,backgroundColor); // keep decimal point visible
   // wattHourDisplay.setPixelColor((FONT_W-2)*FONT_H+0,backgroundColor); // keep decimal point visible
   wattHourDisplay.show(); // send the update out to the LEDs
+}
+
+void calcWattHours(){
+  wattHours += (wattage * ((time - wattHourTimer) / 1000.0) / 3600.0); // measure actual watt-hours
+//wattHours +=  wattage *     actual timeslice / in seconds / seconds per hour
+  wattHourTimer = time; // reset the integrator
+}
+
+union float_and_byte {
+  float f;
+  unsigned char bs[sizeof(float)];
+} fab;
+
+void store_watthours() {
+  Serial.println( "Storing wattHours." );
+  fab.f = wattHours;
+  for( i=0; i<sizeof(float); i++ )
+    EEPROM.write( WATTHOURS_EEPROM_ADDRESS+i, fab.bs[i] );
+}
+
+void load_watthours() {
+  Serial.print( "Loading watthours bytes 0x" );
+  bool blank = true;
+  for( i=0; i<sizeof(float); i++ ) {
+    fab.bs[i] = EEPROM.read( WATTHOURS_EEPROM_ADDRESS+i );
+    Serial.print( fab.bs[i], HEX );
+    if( blank && fab.bs[i] != 0xff )  blank = false;
+  }
+  wattHours = blank ? 0 : fab.f;
+  Serial.print( ", so wattHours is " );
+  Serial.print( wattHours );
+  Serial.println( "." );
+}
+
+void reset_watthours() {
+  wattHours = 0;
+  store_watthours();
+  delay(1000); // otherwise it resets a million times each press
 }
