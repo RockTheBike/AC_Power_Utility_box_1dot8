@@ -33,8 +33,8 @@ int levelType[numLevels] = {pwm, pwm, pwm, pwm, pwm};
 #define AMPSPIN A3 // Current Sensor Pin
 #define NOISYZERO 1.0  // assume any smaller measurement should be 0
 #define OVERSAMPLING 25.0 // analog oversampling
-#define AMPCOEFF 8.111
-#define AMPOFFSET 510.6 // when current sensor is at 0 amps this is the ADC value
+#define AMPCOEFF -8.34
+#define AMPOFFSET 503 // when current sensor is at 0 amps this is the ADC value
 float wattage = 0; // what is our present measured wattage
 #define WATTHOUR_DISPLAY_PIN    4
 #define WATTHOUR_DISPLAY_PIXELS (8*32)
