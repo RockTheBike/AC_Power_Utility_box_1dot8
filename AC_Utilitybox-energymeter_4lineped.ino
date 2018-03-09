@@ -13,7 +13,7 @@
 * 1.9 Started using Chinese inverters labeled "1000W Pure Sine Inverter with AC and DC voltage output screens.
 */
 
-char versionStr[] = "AC Utility Box with wattmeter";
+char versionStr[] = "AC Utility Box with energy meter";
 
 const int pwm = 0;
 const int onoff = 1;
