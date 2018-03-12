@@ -6,7 +6,7 @@
  * using addressible LEDs for both */
 
 #include <Adafruit_NeoPixel.h>
-char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer";
+char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer 360pixels backwards";
 
 #define VOLTPIN A0 // Voltage Sensor Pin
 #define AMPSPIN A3 // Current Sensor Pin
