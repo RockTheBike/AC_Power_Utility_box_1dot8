@@ -384,9 +384,9 @@ void writeWattHourDisplay(char* text) {
       }
     }
   }
-  // wattHourDisplay.setPixelColor((FONT_W-1)*FONT_H+7,fontColor); // light up the decimal point
-  // wattHourDisplay.setPixelColor((FONT_W  )*FONT_H+0,backgroundColor); // keep decimal point visible
-  // wattHourDisplay.setPixelColor((FONT_W-2)*FONT_H+0,backgroundColor); // keep decimal point visible
+  wattHourDisplay.setPixelColor((FONT_W-1)*FONT_H+7,fontColor); // light up the decimal point
+  wattHourDisplay.setPixelColor((FONT_W  )*FONT_H+0,backgroundColor); // keep decimal point visible
+  wattHourDisplay.setPixelColor((FONT_W-2)*FONT_H+0,backgroundColor); // keep decimal point visible
   wattHourDisplay.show(); // send the update out to the LEDs
 }
 
