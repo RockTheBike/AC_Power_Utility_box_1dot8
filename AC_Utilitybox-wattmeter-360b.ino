@@ -105,8 +105,8 @@ void setPedalometersLevel(char levNum, uint32_t pixelColor) { // 12x4 boxlid arr
   voltLedStrip.setPixelColor(24+levNum,pixelColor);
   voltLedStrip.setPixelColor(36+levNum,pixelColor);
   for (char led = 0; led < 5; led++) { // 60 LEDs high = 5 LEDs per level
-    pedalometerTower.setPixelColor(levNum*5+led,pixelColor); // tower is 60 lights up, 60 down, repeated 6 times by pedalometerTower.show()
-    pedalometerTower.setPixelColor((119-levNum*5)-led,pixelColor); // this is the 60 down side
+    pedalometerTower.setPixelColor((11-levNum)*5+led,pixelColor); // UPSIDE DOWN tower is 60 lights up, 60 down, repeated 6 times by pedalometerTower.show()
+    pedalometerTower.setPixelColor((119-(11-levNum)*5)-led,pixelColor); // UPSIDE DOWN this is the 60 down side
   }
 }
 
