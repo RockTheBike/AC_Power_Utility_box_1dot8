@@ -31,7 +31,7 @@ uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,0);
 Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, WATTHOUR_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
 
 #define PEDALOMETER_TOWER_PIXELS        120 // number of pixels in RAM array
-#define PEDALOMETER_TOWER_MULTIPLES     6 // number of times RAM array / physical LEDs repeat
+#define PEDALOMETER_TOWER_MULTIPLES     3 // number of times RAM array / physical LEDs repeat
 Adafruit_NeoPixel pedalometerTower = Adafruit_NeoPixel(PEDALOMETER_TOWER_PIXELS, PEDALOMETER_TOWER_PIN, NEO_GRB + NEO_KHZ800, PEDALOMETER_TOWER_MULTIPLES); // requires RTB fork of Adafruit_NeoPixel library
 
 #define WATTDISPLAYVOLTAGE 19.5 // below this voltage, watthour display is blanked
