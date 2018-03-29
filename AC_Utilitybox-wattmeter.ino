@@ -80,7 +80,11 @@ void setup() {
   Serial.begin(57600);
   wattHourDisplay.begin();
   wattHourDisplay.show();
-  Serial.println(versionStr);
+  Serial.print(versionStr);
+  Serial.print(" AMPOFFSET:");
+  Serial.print(AMPOFFSET);
+  Serial.print(" AMPCOEFF:");
+  Serial.println(AMPCOEFF);
   pinMode(DISCORELAY, OUTPUT);
   digitalWrite(DISCORELAY,LOW);
   getVoltages();
@@ -218,10 +222,7 @@ void printDisplay(){
   Serial.print((float)plusRailAmpsRaw / OVERSAMPLING,1);
   Serial.print(")");
   Serial.print(", DC Watts: ");
-  Serial.print(wattage);
-
-  Serial.println("");
-  Serial.println();
+  Serial.println(wattage);
 }
 
 void updateDisplay() {
