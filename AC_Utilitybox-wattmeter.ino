@@ -142,11 +142,7 @@ void doLeds(){
     uint32_t pixelColor;
     for(int i = 0; i < nowLedLevel; i++) { // gas gauge effect
       if (nowLedLevel < 5) {
-        if (blinkState) { // blinking red
-          pixelColor = red;
-        } else {
-          pixelColor = dark;
-        }
+        pixelColor = red;
       } else if (nowLedLevel > 12) {
         if (blinkState) { // blinking white
           pixelColor = white;
