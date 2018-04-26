@@ -12,8 +12,8 @@ char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer";
 #define AMPSPIN A3 // Current Sensor Pin
 #define NOISYZERO 1.0  // assume any smaller measurement should be 0
 #define OVERSAMPLING 25.0 // analog oversampling
-#define AMPCOEFF 8.74
-#define AMPOFFSET 507.0 // when current sensor is at 0 amps this is the ADC value
+#define AMPCOEFF 13.05  // PLUSOUT = OUTPUT, PLUSRAIL = PEDAL INPUT
+#define AMPOFFSET 118.0 // when current sensor is at 0 amps this is the ADC value
 float wattage = 0; // what is our present measured wattage
 #define NUM_VOLTLEDS 48 // four 12-LED strips side by side, facing the same direction
 Adafruit_NeoPixel voltLedStrip = Adafruit_NeoPixel(NUM_VOLTLEDS, VOLTLEDSTRIPPIN, NEO_GRB + NEO_KHZ800);
@@ -189,7 +189,7 @@ void doSafety() {
 void getCurrent(){
   plusRailAmpsRaw = 0; // reset adder
   for(int j = 0; j < OVERSAMPLING; j++) plusRailAmpsRaw += analogRead(AMPSPIN) - AMPOFFSET;
-  plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF * -1; // negative
+  plusRailAmps = ((float)plusRailAmpsRaw / OVERSAMPLING) / AMPCOEFF;  // PLUSOUT = OUTPUT, PLUSRAIL = PEDAL INPUT
   if( plusRailAmps < NOISYZERO ) plusRailAmps = 0; // we assume anything near or below zero is a reading error
   wattage = volts * plusRailAmps;
 }
