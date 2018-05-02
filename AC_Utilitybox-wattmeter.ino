@@ -10,7 +10,7 @@ char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer";
 
 #define VOLTPIN A0 // Voltage Sensor Pin
 #define AMPSPIN A3 // Current Sensor Pin
-#define NOISYZERO 1.0  // assume any smaller measurement should be 0
+#define NOISYZERO 0.5  // assume any smaller measurement should be 0
 #define OVERSAMPLING 25.0 // analog oversampling
 #define AMPCOEFF 13.05  // PLUSOUT = OUTPUT, PLUSRAIL = PEDAL INPUT
 #define AMPOFFSET 118.0 // when current sensor is at 0 amps this is the ADC value
@@ -52,7 +52,7 @@ uint32_t dark = Adafruit_NeoPixel::Color(0,0,0);
 #define STATE_BLINK_HIGH 3
 #define STATE_RAMP 4
 
-#define MAX_VOLTS 30.0 // when to open the safety relay
+#define MAX_VOLTS 29.5 // when to open the safety relay
 #define RECOVERY_VOLTS 23.0 // when to close the safety relay
 #define DANGER_VOLTS 30.8  // when to fast-flash white (slow-flash above last ledLevels)
 bool dangerState = false;
