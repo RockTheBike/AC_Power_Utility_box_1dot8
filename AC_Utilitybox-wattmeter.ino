@@ -34,7 +34,7 @@ Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, W
 #define PEDALOMETER_TOWER_MULTIPLES     6 // number of times RAM array / physical LEDs repeat
 Adafruit_NeoPixel pedalometerTower = Adafruit_NeoPixel(PEDALOMETER_TOWER_PIXELS, PEDALOMETER_TOWER_PIN, NEO_GRB + NEO_KHZ800, PEDALOMETER_TOWER_MULTIPLES); // requires RTB fork of Adafruit_NeoPixel library
 
-#define WATTDISPLAYVOLTAGE 19.5 // below this voltage, watthour display is blanked
+#define WATTDISPLAYVOLTAGE 20.7 // below this voltage, watthour display is blanked
 #define LEDBRIGHTNESS 127 // brightness of addressible LEDs (0 to 255)
 #define BLINK_PERIOD 1200
 #define FAST_BLINK_PERIOD 300
@@ -159,6 +159,10 @@ void doLeds(){
     }
   } else {
   lastLedLevel = 0; // don't confuse the hysteresis
+  }
+
+  if ((volts > WATTDISPLAYVOLTAGE) && (nowLedLevel == 0)) {
+    if (blinkState) setPedalometersLevel(0, red); // default is dark
   }
 
   if (dangerState){ // in danger fastblink white
