@@ -30,8 +30,8 @@ uint32_t fontColor = Adafruit_NeoPixel::Color(175,157,120);
 uint32_t backgroundColor = Adafruit_NeoPixel::Color(0,0,0);
 Adafruit_NeoPixel wattHourDisplay = Adafruit_NeoPixel(WATTHOUR_DISPLAY_PIXELS, WATTHOUR_DISPLAY_PIN, NEO_GRB + NEO_KHZ800);
 
-#define PEDALOMETER_TOWER_PIXELS        120 // number of pixels in RAM array
-#define PEDALOMETER_TOWER_MULTIPLES     6 // number of times RAM array / physical LEDs repeat
+#define PEDALOMETER_TOWER_PIXELS        60 // number of pixels in RAM array
+#define PEDALOMETER_TOWER_MULTIPLES     1 // number of times RAM array / physical LEDs repeat
 Adafruit_NeoPixel pedalometerTower = Adafruit_NeoPixel(PEDALOMETER_TOWER_PIXELS, PEDALOMETER_TOWER_PIN, NEO_GRB + NEO_KHZ800, PEDALOMETER_TOWER_MULTIPLES); // requires RTB fork of Adafruit_NeoPixel library
 
 #define WATTDISPLAYVOLTAGE 20.7 // below this voltage, watthour display is blanked
@@ -109,8 +109,7 @@ void setPedalometersLevel(char levNum, uint32_t pixelColor) { // 12x4 boxlid arr
   voltLedStrip.setPixelColor(24+levNum,pixelColor);
   voltLedStrip.setPixelColor(36+levNum,pixelColor);
   for (char led = 0; led < 5; led++) { // 60 LEDs high = 5 LEDs per level
-    pedalometerTower.setPixelColor(levNum*5+led,pixelColor); // tower is 60 lights up, 60 down, repeated 6 times by pedalometerTower.show()
-    pedalometerTower.setPixelColor((119-levNum*5)-led,pixelColor); // this is the 60 down side
+    pedalometerTower.setPixelColor(levNum*5+led,pixelColor); // tower is 60 lights up, unlike branch wattmeter-serialpedalometer
   }
 }
 

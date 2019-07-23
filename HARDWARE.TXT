@@ -1,9 +1,8 @@
 the four strip by 12 LED box-lid pedalometer's data wire connects to Arbduino pin 13
-the wattmeter (a panel of 8x32 LEDs) data wire connects to Arbduino pin 4
+the wattmeter (a panel of 8x32 LEDs that displays numbers) data wire connects to Arbduino pin 4
+this build works with an external pedalometer from China made of 12 strips of 60 LEDs wired in PARALLEL on Arbduino pin 12
 
 only one transistor in Q2 for the safety relays
-
-this build does not work with an external pedalometer, only with the built-in 12x4 addressible mini-pedalometer
 
 connect the plus wire to the inverter to PLUSRAIL and the ultracapacitors plus to PLUSOUT of the current sensor, using thick wires that are heavily soldered to the sensor
 
