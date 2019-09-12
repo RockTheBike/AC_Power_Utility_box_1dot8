@@ -2,11 +2,10 @@
 #define WATTHOUR_DISPLAY_PIN    4  // what pin the 8x32 addressible LED panel data pin connects to
 #define PEDALOMETER_TOWER_PIN   12  // what pin the tubular pedaloeter tower data pin connects to
 
-/* AC utility box with wattmeter and pedalometer
- * using addressible LEDs for both */
+/* AC utility box with wattmeter and pedalometer for New Caledonia. This box has a 3000W inverter with wide voltage range. Uses addressible LEDs for pedalometer */
 
 #include <Adafruit_NeoPixel.h>
-char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer";
+char versionStr[] = "AC Utility Box with wattmeter & addressible pedalometer. This box has a 3000W inverter with a wide voltage range.";
 
 #define VOLTPIN A0 // Voltage Sensor Pin
 #define AMPSPIN A3 // Current Sensor Pin
@@ -20,7 +19,7 @@ Adafruit_NeoPixel voltLedStrip = Adafruit_NeoPixel(NUM_VOLTLEDS, VOLTLEDSTRIPPIN
 
 // levels at which each LED turns green (normally all red unless below first voltage)
 const float ledLevels[12+1] = { // the pedalometer is four strips of 12 side by side...
-  8.7, 22.5, 23.0, 23.5, 24.0, 24.5, 25.0, 25.5, 26.0, 26.5, 27.0, 27.5, 28.0 };
+  8.7, 19.5, 20.5, 21.5, 22.5, 24.0, 24.6, 25.2, 25.8, 26.3, 26.8, 27.5, 28.5};
 
 #define WATTHOUR_DISPLAY_PIXELS (8*32)
 // bottom right is first pixel, goes up 8, left 1, down 8, left 1...
@@ -52,7 +51,7 @@ uint32_t dark = Adafruit_NeoPixel::Color(0,0,0);
 #define STATE_BLINK_HIGH 3
 #define STATE_RAMP 4
 
-#define MAX_VOLTS 29.5 // when to open the safety relay
+#define MAX_VOLTS 30.0 // when to open the safety relay
 #define RECOVERY_VOLTS 23.0 // when to close the safety relay
 #define DANGER_VOLTS 30.8  // when to fast-flash white (slow-flash above last ledLevels)
 bool dangerState = false;
