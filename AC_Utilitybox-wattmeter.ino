@@ -20,7 +20,7 @@ Adafruit_NeoPixel voltLedStrip = Adafruit_NeoPixel(NUM_VOLTLEDS, VOLTLEDSTRIPPIN
 
 // levels at which each LED turns green (normally all red unless below first voltage)
 const float ledLevels[12+1] = { // the pedalometer is four strips of 12 side by side...
-  22.0, 22.5, 23.0, 23.5, 24.0, 24.5, 25.0, 25.5, 26.0, 26.5, 27.0, 27.5, 28.0 };
+  8.7, 22.5, 23.0, 23.5, 24.0, 24.5, 25.0, 25.5, 26.0, 26.5, 27.0, 27.5, 28.0 };
 
 #define WATTHOUR_DISPLAY_PIXELS (8*32)
 // bottom right is first pixel, goes up 8, left 1, down 8, left 1...
@@ -58,7 +58,7 @@ uint32_t dark = Adafruit_NeoPixel::Color(0,0,0);
 bool dangerState = false;
 int lastLedLevel = 0; // for LED strip hysteresis
 int nowLedLevel = 0; // for LED strip
-#define LEDLEVELHYSTERESIS 0.6 // how many volts of hysteresis for gas gauge
+#define LEDLEVELHYSTERESIS 0.2 // how many volts of hysteresis for gas gauge
 
 int adcvalue = 0;
 
@@ -142,6 +142,7 @@ void doLeds(){
     for(int i = 0; i < nowLedLevel; i++) { // gas gauge effect
       if (nowLedLevel < 5) {
         pixelColor = red;
+        if ((nowLedLevel < 2) && blinkState) pixelColor = dark; // blink at lowest levels
       } else if (nowLedLevel > 12) {
         if (blinkState) { // blinking white
           pixelColor = white;
