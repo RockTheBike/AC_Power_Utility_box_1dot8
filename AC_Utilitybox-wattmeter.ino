@@ -229,7 +229,7 @@ void updateDisplay() {
   char buf[]="    "; // stores the number we're going to display
   //sprintf(buf,"%4d",millis()/100);// for testing display
   if ((volts >= WATTDISPLAYVOLTAGE) || (wattage > 30)) { // if voltage above minimum
-    sprintf(buf,"%4d",((int)(wattage)/10UL) * 10UL); // quantize to tens of watts
+    sprintf(buf,"%4d",(int)(wattage)); // quantize to tens of watts
   } // otherwise buf will remain blank as initialized
   writeWattHourDisplay(buf);
 }
